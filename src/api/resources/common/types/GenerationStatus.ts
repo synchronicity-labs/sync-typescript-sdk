@@ -5,12 +5,10 @@
 /**
  * The status of the generation.
  */
-export type GenerationStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED" | "REJECTED" | "CANCELED";
+export type GenerationStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
 export const GenerationStatus = {
     Pending: "PENDING",
     Processing: "PROCESSING",
     Completed: "COMPLETED",
     Failed: "FAILED",
-    Rejected: "REJECTED",
-    Canceled: "CANCELED",
 } as const;

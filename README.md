@@ -5,6 +5,10 @@
 
 The Sync TypeScript library provides convenient access to the Sync API from TypeScript.
 
+## Documentation
+
+API reference documentation is available [here](https://docs.sync.so/api-reference).
+
 ## Installation
 
 ```sh
