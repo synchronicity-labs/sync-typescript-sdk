@@ -1,1 +1,1 @@
-export { type GenerateControllerGetGenerationsRequest } from "./GenerateControllerGetGenerationsRequest";
+export { type LipsyncListGenerationsRequest } from "./LipsyncListGenerationsRequest";

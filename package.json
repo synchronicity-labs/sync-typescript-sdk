@@ -1,8 +1,8 @@
 {
     "name": "syncsdk",
-    "version": "0.0.3",
+    "version": "0.0.15",
     "private": false,
-    "repository": "https://github.com/fern-demo/sync-typescript-sdk",
+    "repository": "https://github.com/synchronicity-labs/sync-typescript-sdk",
     "main": "./index.js",
     "types": "./index.d.ts",
     "scripts": {

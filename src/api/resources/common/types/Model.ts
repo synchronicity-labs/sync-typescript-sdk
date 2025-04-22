@@ -5,13 +5,8 @@
 /**
  * name of the model to use for generation.
  */
-export type CreateGenerationDtoModel =
-    | "lipsync-2"
-    | "lipsync-1.9.0-beta"
-    | "lipsync-1.8.0"
-    | "lipsync-1.7.1"
-    | "lipsync-1.6.0";
-export const CreateGenerationDtoModel = {
+export type Model = "lipsync-2" | "lipsync-1.9.0-beta" | "lipsync-1.8.0" | "lipsync-1.7.1" | "lipsync-1.6.0";
+export const Model = {
     Lipsync2: "lipsync-2",
     Lipsync190Beta: "lipsync-1.9.0-beta",
     Lipsync180: "lipsync-1.8.0",

@@ -5,7 +5,6 @@
 import * as environments from "./environments";
 import * as core from "./core";
 import { Generate } from "./api/resources/generate/client/Client";
-import { Analyze } from "./api/resources/analyze/client/Client";
 
 export declare namespace SyncClient {
     export interface Options {
@@ -30,15 +29,10 @@ export declare namespace SyncClient {
 
 export class SyncClient {
     protected _generate: Generate | undefined;
-    protected _analyze: Analyze | undefined;
 
     constructor(protected readonly _options: SyncClient.Options) {}
 
     public get generate(): Generate {
         return (this._generate ??= new Generate(this._options));
-    }
-
-    public get analyze(): Analyze {
-        return (this._analyze ??= new Analyze(this._options));
     }
 }

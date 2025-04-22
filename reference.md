@@ -2,7 +2,7 @@
 
 ## Generate
 
-<details><summary><code>client.generate.<a href="/src/api/resources/generate/client/Client.ts">generateControllerCreateGeneration</a>({ ...params }) -> Sync.Generation</code></summary>
+<details><summary><code>client.generate.<a href="/src/api/resources/generate/client/Client.ts">createGeneration</a>({ ...params }) -> Sync.Generation</code></summary>
 <dl>
 <dd>
 
@@ -15,8 +15,7 @@
 <dd>
 
 ```typescript
-await client.generate.generateControllerCreateGeneration({
-    model: "lipsync-2",
+await client.generate.createGeneration({
     input: [
         {
             type: "video",
@@ -27,6 +26,10 @@ await client.generate.generateControllerCreateGeneration({
             url: "https://synchlabs-public.s3.us-west-2.amazonaws.com/david_demo_shortaud-27623a4f-edab-4c6a-8383-871b18961a4a.wav",
         },
     ],
+    model: "lipsync-2",
+    options: {
+        sync_mode: "loop",
+    },
 });
 ```
 
@@ -62,7 +65,7 @@ await client.generate.generateControllerCreateGeneration({
 </dl>
 </details>
 
-<details><summary><code>client.generate.<a href="/src/api/resources/generate/client/Client.ts">generateControllerGetGeneration</a>(id) -> Sync.Generation</code></summary>
+<details><summary><code>client.generate.<a href="/src/api/resources/generate/client/Client.ts">getGeneration</a>(id) -> Sync.Generation</code></summary>
 <dl>
 <dd>
 
@@ -75,7 +78,7 @@ await client.generate.generateControllerCreateGeneration({
 <dd>
 
 ```typescript
-await client.generate.generateControllerGetGeneration("id");
+await client.generate.getGeneration("6533643b-acbe-4c40-967e-d9ba9baac39e");
 ```
 
 </dd>
@@ -91,7 +94,7 @@ await client.generate.generateControllerGetGeneration("id");
 <dl>
 <dd>
 
-**id:** `string` — Job ID
+**id:** `Sync.GenerationId`
 
 </dd>
 </dl>
@@ -110,7 +113,7 @@ await client.generate.generateControllerGetGeneration("id");
 </dl>
 </details>
 
-<details><summary><code>client.generate.<a href="/src/api/resources/generate/client/Client.ts">generateControllerCancelGeneration</a>(id) -> Sync.Generation</code></summary>
+<details><summary><code>client.generate.<a href="/src/api/resources/generate/client/Client.ts">listGenerations</a>({ ...params }) -> Sync.Generation[]</code></summary>
 <dl>
 <dd>
 
@@ -123,7 +126,7 @@ await client.generate.generateControllerGetGeneration("id");
 <dd>
 
 ```typescript
-await client.generate.generateControllerCancelGeneration("id");
+await client.generate.listGenerations();
 ```
 
 </dd>
@@ -139,7 +142,7 @@ await client.generate.generateControllerCancelGeneration("id");
 <dl>
 <dd>
 
-**id:** `string` — Job ID to cancel
+**request:** `Sync.LipsyncListGenerationsRequest`
 
 </dd>
 </dl>
@@ -158,7 +161,7 @@ await client.generate.generateControllerCancelGeneration("id");
 </dl>
 </details>
 
-<details><summary><code>client.generate.<a href="/src/api/resources/generate/client/Client.ts">generateControllerGetGenerations</a>({ ...params }) -> Sync.Generation[]</code></summary>
+<details><summary><code>client.generate.<a href="/src/api/resources/generate/client/Client.ts">estimateCost</a>({ ...params }) -> Sync.EstimatedGenerationCost[]</code></summary>
 <dl>
 <dd>
 
@@ -171,58 +174,7 @@ await client.generate.generateControllerCancelGeneration("id");
 <dd>
 
 ```typescript
-await client.generate.generateControllerGetGenerations();
-```
-
-</dd>
-</dl>
-</dd>
-</dl>
-
-#### ⚙️ Parameters
-
-<dl>
-<dd>
-
-<dl>
-<dd>
-
-**request:** `Sync.GenerateControllerGetGenerationsRequest`
-
-</dd>
-</dl>
-
-<dl>
-<dd>
-
-**requestOptions:** `Generate.RequestOptions`
-
-</dd>
-</dl>
-</dd>
-</dl>
-
-</dd>
-</dl>
-</details>
-
-## Analyze
-
-<details><summary><code>client.analyze.<a href="/src/api/resources/analyze/client/Client.ts">analyzeControllerGetCostEstimate</a>({ ...params }) -> Sync.EstimatedGenerationCost[]</code></summary>
-<dl>
-<dd>
-
-#### 🔌 Usage
-
-<dl>
-<dd>
-
-<dl>
-<dd>
-
-```typescript
-await client.analyze.analyzeControllerGetCostEstimate({
-    model: "lipsync-2",
+await client.generate.estimateCost({
     input: [
         {
             type: "video",
@@ -233,6 +185,10 @@ await client.analyze.analyzeControllerGetCostEstimate({
             url: "https://synchlabs-public.s3.us-west-2.amazonaws.com/david_demo_shortaud-27623a4f-edab-4c6a-8383-871b18961a4a.wav",
         },
     ],
+    model: "lipsync-2",
+    options: {
+        sync_mode: "loop",
+    },
 });
 ```
 
@@ -257,7 +213,7 @@ await client.analyze.analyzeControllerGetCostEstimate({
 <dl>
 <dd>
 
-**requestOptions:** `Analyze.RequestOptions`
+**requestOptions:** `Generate.RequestOptions`
 
 </dd>
 </dl>

@@ -41,18 +41,21 @@ export class Generate {
      * @throws {@link Sync.InternalServerError}
      *
      * @example
-     *     await client.generate.generateControllerCreateGeneration({
-     *         model: "lipsync-2",
+     *     await client.generate.createGeneration({
      *         input: [{
      *                 type: "video",
      *                 url: "https://synchlabs-public.s3.us-west-2.amazonaws.com/david_demo_shortvid-03a10044-7741-4cfc-816a-5bccd392d1ee.mp4"
      *             }, {
      *                 type: "audio",
      *                 url: "https://synchlabs-public.s3.us-west-2.amazonaws.com/david_demo_shortaud-27623a4f-edab-4c6a-8383-871b18961a4a.wav"
-     *             }]
+     *             }],
+     *         model: "lipsync-2",
+     *         options: {
+     *             sync_mode: "loop"
+     *         }
      *     })
      */
-    public async generateControllerCreateGeneration(
+    public async createGeneration(
         request: Sync.CreateGenerationDto,
         requestOptions?: Generate.RequestOptions,
     ): Promise<Sync.Generation> {
@@ -61,13 +64,13 @@ export class Generate {
                 (await core.Supplier.get(this._options.baseUrl)) ??
                     (await core.Supplier.get(this._options.environment)) ??
                     environments.SyncEnvironment.Default,
-                "v2/generate",
+                "/v2/generate",
             ),
             method: "POST",
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "syncsdk",
-                "X-Fern-SDK-Version": "0.0.3",
+                "X-Fern-SDK-Version": "0.0.15",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -116,7 +119,7 @@ export class Generate {
     }
 
     /**
-     * @param {string} id - Job ID
+     * @param {Sync.GenerationId} id
      * @param {Generate.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link Sync.UnauthorizedError}
@@ -124,10 +127,10 @@ export class Generate {
      * @throws {@link Sync.InternalServerError}
      *
      * @example
-     *     await client.generate.generateControllerGetGeneration("id")
+     *     await client.generate.getGeneration("6533643b-acbe-4c40-967e-d9ba9baac39e")
      */
-    public async generateControllerGetGeneration(
-        id: string,
+    public async getGeneration(
+        id: Sync.GenerationId,
         requestOptions?: Generate.RequestOptions,
     ): Promise<Sync.Generation> {
         const _response = await (this._options.fetcher ?? core.fetcher)({
@@ -135,13 +138,13 @@ export class Generate {
                 (await core.Supplier.get(this._options.baseUrl)) ??
                     (await core.Supplier.get(this._options.environment)) ??
                     environments.SyncEnvironment.Default,
-                `v2/generate/${encodeURIComponent(id)}`,
+                `/v2/generate/${encodeURIComponent(id)}`,
             ),
             method: "GET",
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "syncsdk",
-                "X-Fern-SDK-Version": "0.0.3",
+                "X-Fern-SDK-Version": "0.0.15",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -189,93 +192,17 @@ export class Generate {
     }
 
     /**
-     * @param {string} id - Job ID to cancel
-     * @param {Generate.RequestOptions} requestOptions - Request-specific configuration.
-     *
-     * @throws {@link Sync.BadRequestError}
-     * @throws {@link Sync.UnauthorizedError}
-     * @throws {@link Sync.NotFoundError}
-     * @throws {@link Sync.InternalServerError}
-     *
-     * @example
-     *     await client.generate.generateControllerCancelGeneration("id")
-     */
-    public async generateControllerCancelGeneration(
-        id: string,
-        requestOptions?: Generate.RequestOptions,
-    ): Promise<Sync.Generation> {
-        const _response = await (this._options.fetcher ?? core.fetcher)({
-            url: urlJoin(
-                (await core.Supplier.get(this._options.baseUrl)) ??
-                    (await core.Supplier.get(this._options.environment)) ??
-                    environments.SyncEnvironment.Default,
-                `v2/generate/${encodeURIComponent(id)}/cancel`,
-            ),
-            method: "POST",
-            headers: {
-                "X-Fern-Language": "JavaScript",
-                "X-Fern-SDK-Name": "syncsdk",
-                "X-Fern-SDK-Version": "0.0.3",
-                "X-Fern-Runtime": core.RUNTIME.type,
-                "X-Fern-Runtime-Version": core.RUNTIME.version,
-                ...(await this._getCustomAuthorizationHeaders()),
-                ...requestOptions?.headers,
-            },
-            contentType: "application/json",
-            requestType: "json",
-            timeoutMs: requestOptions?.timeoutInSeconds != null ? requestOptions.timeoutInSeconds * 1000 : 60000,
-            maxRetries: requestOptions?.maxRetries,
-            abortSignal: requestOptions?.abortSignal,
-        });
-        if (_response.ok) {
-            return _response.body as Sync.Generation;
-        }
-
-        if (_response.error.reason === "status-code") {
-            switch (_response.error.statusCode) {
-                case 400:
-                    throw new Sync.BadRequestError(_response.error.body as Sync.GenerationError);
-                case 401:
-                    throw new Sync.UnauthorizedError(_response.error.body as Sync.GenerationError);
-                case 404:
-                    throw new Sync.NotFoundError(_response.error.body as Sync.GenerationError);
-                case 500:
-                    throw new Sync.InternalServerError(_response.error.body as Sync.GenerationError);
-                default:
-                    throw new errors.SyncError({
-                        statusCode: _response.error.statusCode,
-                        body: _response.error.body,
-                    });
-            }
-        }
-
-        switch (_response.error.reason) {
-            case "non-json":
-                throw new errors.SyncError({
-                    statusCode: _response.error.statusCode,
-                    body: _response.error.rawBody,
-                });
-            case "timeout":
-                throw new errors.SyncTimeoutError("Timeout exceeded when calling POST /v2/generate/{id}/cancel.");
-            case "unknown":
-                throw new errors.SyncError({
-                    message: _response.error.errorMessage,
-                });
-        }
-    }
-
-    /**
-     * @param {Sync.GenerateControllerGetGenerationsRequest} request
+     * @param {Sync.LipsyncListGenerationsRequest} request
      * @param {Generate.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link Sync.UnauthorizedError}
      * @throws {@link Sync.InternalServerError}
      *
      * @example
-     *     await client.generate.generateControllerGetGenerations()
+     *     await client.generate.listGenerations()
      */
-    public async generateControllerGetGenerations(
-        request: Sync.GenerateControllerGetGenerationsRequest = {},
+    public async listGenerations(
+        request: Sync.LipsyncListGenerationsRequest = {},
         requestOptions?: Generate.RequestOptions,
     ): Promise<Sync.Generation[]> {
         const { status } = request;
@@ -289,13 +216,13 @@ export class Generate {
                 (await core.Supplier.get(this._options.baseUrl)) ??
                     (await core.Supplier.get(this._options.environment)) ??
                     environments.SyncEnvironment.Default,
-                "v2/generations",
+                "/v2/generations",
             ),
             method: "GET",
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "syncsdk",
-                "X-Fern-SDK-Version": "0.0.3",
+                "X-Fern-SDK-Version": "0.0.15",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -334,6 +261,89 @@ export class Generate {
                 });
             case "timeout":
                 throw new errors.SyncTimeoutError("Timeout exceeded when calling GET /v2/generations.");
+            case "unknown":
+                throw new errors.SyncError({
+                    message: _response.error.errorMessage,
+                });
+        }
+    }
+
+    /**
+     * @param {Sync.CreateGenerationDto} request
+     * @param {Generate.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link Sync.UnauthorizedError}
+     * @throws {@link Sync.InternalServerError}
+     *
+     * @example
+     *     await client.generate.estimateCost({
+     *         input: [{
+     *                 type: "video",
+     *                 url: "https://synchlabs-public.s3.us-west-2.amazonaws.com/david_demo_shortvid-03a10044-7741-4cfc-816a-5bccd392d1ee.mp4"
+     *             }, {
+     *                 type: "audio",
+     *                 url: "https://synchlabs-public.s3.us-west-2.amazonaws.com/david_demo_shortaud-27623a4f-edab-4c6a-8383-871b18961a4a.wav"
+     *             }],
+     *         model: "lipsync-2",
+     *         options: {
+     *             sync_mode: "loop"
+     *         }
+     *     })
+     */
+    public async estimateCost(
+        request: Sync.CreateGenerationDto,
+        requestOptions?: Generate.RequestOptions,
+    ): Promise<Sync.EstimatedGenerationCost[]> {
+        const _response = await (this._options.fetcher ?? core.fetcher)({
+            url: urlJoin(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.SyncEnvironment.Default,
+                "/v2/analyze/cost",
+            ),
+            method: "POST",
+            headers: {
+                "X-Fern-Language": "JavaScript",
+                "X-Fern-SDK-Name": "syncsdk",
+                "X-Fern-SDK-Version": "0.0.15",
+                "X-Fern-Runtime": core.RUNTIME.type,
+                "X-Fern-Runtime-Version": core.RUNTIME.version,
+                ...(await this._getCustomAuthorizationHeaders()),
+                ...requestOptions?.headers,
+            },
+            contentType: "application/json",
+            requestType: "json",
+            body: request,
+            timeoutMs: requestOptions?.timeoutInSeconds != null ? requestOptions.timeoutInSeconds * 1000 : 60000,
+            maxRetries: requestOptions?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+        });
+        if (_response.ok) {
+            return _response.body as Sync.EstimatedGenerationCost[];
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 401:
+                    throw new Sync.UnauthorizedError(_response.error.body as Sync.GenerationError);
+                case 500:
+                    throw new Sync.InternalServerError(_response.error.body as Sync.GenerationError);
+                default:
+                    throw new errors.SyncError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                    });
+            }
+        }
+
+        switch (_response.error.reason) {
+            case "non-json":
+                throw new errors.SyncError({
+                    statusCode: _response.error.statusCode,
+                    body: _response.error.rawBody,
+                });
+            case "timeout":
+                throw new errors.SyncTimeoutError("Timeout exceeded when calling POST /v2/analyze/cost.");
             case "unknown":
                 throw new errors.SyncError({
                     message: _response.error.errorMessage,
