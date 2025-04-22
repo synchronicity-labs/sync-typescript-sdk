@@ -1,14 +1,14 @@
 # Sync TypeScript Library
 
 [![fern shield](https://img.shields.io/badge/%F0%9F%8C%BF-Built%20with%20Fern-brightgreen)](https://buildwithfern.com?utm_source=github&utm_medium=github&utm_campaign=readme&utm_source=https%3A%2F%2Fgithub.com%2Fsynchronicity-labs%2Fsync-typescript-sdk)
-[![npm shield](https://img.shields.io/npm/v/syncsdk)](https://www.npmjs.com/package/syncsdk)
+[![npm shield](https://img.shields.io/npm/v/@sync.so/syncsdk)](https://www.npmjs.com/package/@sync.so/syncsdk)
 
 The Sync TypeScript library provides convenient access to the Sync API from TypeScript.
 
 ## Installation
 
 ```sh
-npm i -s syncsdk
+npm i -s @sync.so/syncsdk
 ```
 
 ## Reference
@@ -20,7 +20,7 @@ A full reference for this library is available [here](./reference.md).
 Instantiate and use the client with the following:
 
 ```typescript
-import { SyncClient } from "syncsdk";
+import { SyncClient } from "@sync.so/syncsdk";
 
 const client = new SyncClient({ apiKey: "YOUR_API_KEY" });
 await client.generate.createGeneration({
@@ -47,7 +47,7 @@ The SDK exports all request and response types as TypeScript interfaces. Simply 
 following namespace:
 
 ```typescript
-import { Sync } from "syncsdk";
+import { Sync } from "@sync.so/syncsdk";
 
 const request: Sync.LipsyncListGenerationsRequest = {
     ...
@@ -60,7 +60,7 @@ When the API returns a non-success status code (4xx or 5xx response), a subclass
 will be thrown.
 
 ```typescript
-import { SyncError } from "syncsdk";
+import { SyncError } from "@sync.so/syncsdk";
 
 try {
     await client.generate.createGeneration(...);
@@ -160,7 +160,7 @@ The SDK provides a way for your to customize the underlying HTTP client / Fetch 
 unsupported environment, this provides a way for you to break glass and ensure the SDK works.
 
 ```typescript
-import { SyncClient } from "syncsdk";
+import { SyncClient } from "@sync.so/syncsdk";
 
 const client = new SyncClient({
     ...
