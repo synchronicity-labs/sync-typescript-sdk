@@ -1,6 +1,6 @@
 {
     "name": "syncsdk",
-    "version": "0.0.15",
+    "version": "0.1.0",
     "private": false,
     "repository": "https://github.com/synchronicity-labs/sync-typescript-sdk",
     "main": "./index.js",
@@ -38,5 +38,6 @@
         "fs": false,
         "os": false,
         "path": false
-    }
+    },
+    "packageManager": "yarn@1.22.22"
 }

@@ -55,10 +55,17 @@ export class Generate {
      *         }
      *     })
      */
-    public async createGeneration(
+    public createGeneration(
         request: Sync.CreateGenerationDto,
         requestOptions?: Generate.RequestOptions,
-    ): Promise<Sync.Generation> {
+    ): core.HttpResponsePromise<Sync.Generation> {
+        return core.HttpResponsePromise.fromPromise(this.__createGeneration(request, requestOptions));
+    }
+
+    private async __createGeneration(
+        request: Sync.CreateGenerationDto,
+        requestOptions?: Generate.RequestOptions,
+    ): Promise<core.WithRawResponse<Sync.Generation>> {
         const _response = await (this._options.fetcher ?? core.fetcher)({
             url: urlJoin(
                 (await core.Supplier.get(this._options.baseUrl)) ??
@@ -70,7 +77,8 @@ export class Generate {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "syncsdk",
-                "X-Fern-SDK-Version": "0.0.15",
+                "X-Fern-SDK-Version": "0.1.0",
+                "User-Agent": "syncsdk/0.1.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -84,21 +92,28 @@ export class Generate {
             abortSignal: requestOptions?.abortSignal,
         });
         if (_response.ok) {
-            return _response.body as Sync.Generation;
+            return { data: _response.body as Sync.Generation, rawResponse: _response.rawResponse };
         }
 
         if (_response.error.reason === "status-code") {
             switch (_response.error.statusCode) {
                 case 400:
-                    throw new Sync.BadRequestError(_response.error.body as Sync.GenerationError);
+                    throw new Sync.BadRequestError(_response.error.body as Sync.GenerationError, _response.rawResponse);
                 case 401:
-                    throw new Sync.UnauthorizedError(_response.error.body as Sync.GenerationError);
+                    throw new Sync.UnauthorizedError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
                 case 500:
-                    throw new Sync.InternalServerError(_response.error.body as Sync.GenerationError);
+                    throw new Sync.InternalServerError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
                 default:
                     throw new errors.SyncError({
                         statusCode: _response.error.statusCode,
                         body: _response.error.body,
+                        rawResponse: _response.rawResponse,
                     });
             }
         }
@@ -108,12 +123,14 @@ export class Generate {
                 throw new errors.SyncError({
                     statusCode: _response.error.statusCode,
                     body: _response.error.rawBody,
+                    rawResponse: _response.rawResponse,
                 });
             case "timeout":
                 throw new errors.SyncTimeoutError("Timeout exceeded when calling POST /v2/generate.");
             case "unknown":
                 throw new errors.SyncError({
                     message: _response.error.errorMessage,
+                    rawResponse: _response.rawResponse,
                 });
         }
     }
@@ -129,10 +146,17 @@ export class Generate {
      * @example
      *     await client.generate.getGeneration("6533643b-acbe-4c40-967e-d9ba9baac39e")
      */
-    public async getGeneration(
+    public getGeneration(
         id: Sync.GenerationId,
         requestOptions?: Generate.RequestOptions,
-    ): Promise<Sync.Generation> {
+    ): core.HttpResponsePromise<Sync.Generation> {
+        return core.HttpResponsePromise.fromPromise(this.__getGeneration(id, requestOptions));
+    }
+
+    private async __getGeneration(
+        id: Sync.GenerationId,
+        requestOptions?: Generate.RequestOptions,
+    ): Promise<core.WithRawResponse<Sync.Generation>> {
         const _response = await (this._options.fetcher ?? core.fetcher)({
             url: urlJoin(
                 (await core.Supplier.get(this._options.baseUrl)) ??
@@ -144,7 +168,8 @@ export class Generate {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "syncsdk",
-                "X-Fern-SDK-Version": "0.0.15",
+                "X-Fern-SDK-Version": "0.1.0",
+                "User-Agent": "syncsdk/0.1.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -157,21 +182,28 @@ export class Generate {
             abortSignal: requestOptions?.abortSignal,
         });
         if (_response.ok) {
-            return _response.body as Sync.Generation;
+            return { data: _response.body as Sync.Generation, rawResponse: _response.rawResponse };
         }
 
         if (_response.error.reason === "status-code") {
             switch (_response.error.statusCode) {
                 case 401:
-                    throw new Sync.UnauthorizedError(_response.error.body as Sync.GenerationError);
+                    throw new Sync.UnauthorizedError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
                 case 404:
-                    throw new Sync.NotFoundError(_response.error.body as Sync.GenerationError);
+                    throw new Sync.NotFoundError(_response.error.body as Sync.GenerationError, _response.rawResponse);
                 case 500:
-                    throw new Sync.InternalServerError(_response.error.body as Sync.GenerationError);
+                    throw new Sync.InternalServerError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
                 default:
                     throw new errors.SyncError({
                         statusCode: _response.error.statusCode,
                         body: _response.error.body,
+                        rawResponse: _response.rawResponse,
                     });
             }
         }
@@ -181,12 +213,14 @@ export class Generate {
                 throw new errors.SyncError({
                     statusCode: _response.error.statusCode,
                     body: _response.error.rawBody,
+                    rawResponse: _response.rawResponse,
                 });
             case "timeout":
                 throw new errors.SyncTimeoutError("Timeout exceeded when calling GET /v2/generate/{id}.");
             case "unknown":
                 throw new errors.SyncError({
                     message: _response.error.errorMessage,
+                    rawResponse: _response.rawResponse,
                 });
         }
     }
@@ -201,10 +235,17 @@ export class Generate {
      * @example
      *     await client.generate.listGenerations()
      */
-    public async listGenerations(
+    public listGenerations(
         request: Sync.LipsyncListGenerationsRequest = {},
         requestOptions?: Generate.RequestOptions,
-    ): Promise<Sync.Generation[]> {
+    ): core.HttpResponsePromise<Sync.Generation[]> {
+        return core.HttpResponsePromise.fromPromise(this.__listGenerations(request, requestOptions));
+    }
+
+    private async __listGenerations(
+        request: Sync.LipsyncListGenerationsRequest = {},
+        requestOptions?: Generate.RequestOptions,
+    ): Promise<core.WithRawResponse<Sync.Generation[]>> {
         const { status } = request;
         const _queryParams: Record<string, string | string[] | object | object[] | null> = {};
         if (status != null) {
@@ -222,7 +263,8 @@ export class Generate {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "syncsdk",
-                "X-Fern-SDK-Version": "0.0.15",
+                "X-Fern-SDK-Version": "0.1.0",
+                "User-Agent": "syncsdk/0.1.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -236,19 +278,26 @@ export class Generate {
             abortSignal: requestOptions?.abortSignal,
         });
         if (_response.ok) {
-            return _response.body as Sync.Generation[];
+            return { data: _response.body as Sync.Generation[], rawResponse: _response.rawResponse };
         }
 
         if (_response.error.reason === "status-code") {
             switch (_response.error.statusCode) {
                 case 401:
-                    throw new Sync.UnauthorizedError(_response.error.body as Sync.GenerationError);
+                    throw new Sync.UnauthorizedError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
                 case 500:
-                    throw new Sync.InternalServerError(_response.error.body as Sync.GenerationError);
+                    throw new Sync.InternalServerError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
                 default:
                     throw new errors.SyncError({
                         statusCode: _response.error.statusCode,
                         body: _response.error.body,
+                        rawResponse: _response.rawResponse,
                     });
             }
         }
@@ -258,12 +307,14 @@ export class Generate {
                 throw new errors.SyncError({
                     statusCode: _response.error.statusCode,
                     body: _response.error.rawBody,
+                    rawResponse: _response.rawResponse,
                 });
             case "timeout":
                 throw new errors.SyncTimeoutError("Timeout exceeded when calling GET /v2/generations.");
             case "unknown":
                 throw new errors.SyncError({
                     message: _response.error.errorMessage,
+                    rawResponse: _response.rawResponse,
                 });
         }
     }
@@ -290,10 +341,17 @@ export class Generate {
      *         }
      *     })
      */
-    public async estimateCost(
+    public estimateCost(
         request: Sync.CreateGenerationDto,
         requestOptions?: Generate.RequestOptions,
-    ): Promise<Sync.EstimatedGenerationCost[]> {
+    ): core.HttpResponsePromise<Sync.EstimatedGenerationCost[]> {
+        return core.HttpResponsePromise.fromPromise(this.__estimateCost(request, requestOptions));
+    }
+
+    private async __estimateCost(
+        request: Sync.CreateGenerationDto,
+        requestOptions?: Generate.RequestOptions,
+    ): Promise<core.WithRawResponse<Sync.EstimatedGenerationCost[]>> {
         const _response = await (this._options.fetcher ?? core.fetcher)({
             url: urlJoin(
                 (await core.Supplier.get(this._options.baseUrl)) ??
@@ -305,7 +363,8 @@ export class Generate {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "syncsdk",
-                "X-Fern-SDK-Version": "0.0.15",
+                "X-Fern-SDK-Version": "0.1.0",
+                "User-Agent": "syncsdk/0.1.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -319,19 +378,26 @@ export class Generate {
             abortSignal: requestOptions?.abortSignal,
         });
         if (_response.ok) {
-            return _response.body as Sync.EstimatedGenerationCost[];
+            return { data: _response.body as Sync.EstimatedGenerationCost[], rawResponse: _response.rawResponse };
         }
 
         if (_response.error.reason === "status-code") {
             switch (_response.error.statusCode) {
                 case 401:
-                    throw new Sync.UnauthorizedError(_response.error.body as Sync.GenerationError);
+                    throw new Sync.UnauthorizedError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
                 case 500:
-                    throw new Sync.InternalServerError(_response.error.body as Sync.GenerationError);
+                    throw new Sync.InternalServerError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
                 default:
                     throw new errors.SyncError({
                         statusCode: _response.error.statusCode,
                         body: _response.error.body,
+                        rawResponse: _response.rawResponse,
                     });
             }
         }
@@ -341,12 +407,14 @@ export class Generate {
                 throw new errors.SyncError({
                     statusCode: _response.error.statusCode,
                     body: _response.error.rawBody,
+                    rawResponse: _response.rawResponse,
                 });
             case "timeout":
                 throw new errors.SyncTimeoutError("Timeout exceeded when calling POST /v2/analyze/cost.");
             case "unknown":
                 throw new errors.SyncError({
                     message: _response.error.errorMessage,
+                    rawResponse: _response.rawResponse,
                 });
         }
     }

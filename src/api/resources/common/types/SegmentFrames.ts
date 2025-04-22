@@ -5,4 +5,4 @@
 /**
  * start and end frames of the video segment to apply generation to
  */
-export type SegmentFrames = number[];
+export type SegmentFrames = number[][];

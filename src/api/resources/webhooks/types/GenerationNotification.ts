@@ -4,24 +4,6 @@
 
 import * as Sync from "../../../index";
 
-/**
- * @example
- *     {
- *         status: Sync.WebhookStatus.Completed,
- *         createdAt: "2024-01-10T12:00:00Z",
- *         id: "asdas12312ada",
- *         input: [{
- *                 type: "audio",
- *                 url: "https://example.com/audio.mp3"
- *             }],
- *         model: Sync.Model.Lipsync2,
- *         error: "",
- *         options: {},
- *         outputDuration: 10,
- *         outputUrl: "https://example.com/output.mp4",
- *         webhookUrl: "https://example.com/webhook"
- *     }
- */
 export interface GenerationNotification {
     /** The status of the generation */
     status: Sync.WebhookStatus;

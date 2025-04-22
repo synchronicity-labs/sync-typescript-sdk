@@ -5,4 +5,4 @@
 /**
  * start and end times (in seconds) of the video segment to apply generation to
  */
-export type SegmentSecs = number[];
+export type SegmentSecs = number[][];

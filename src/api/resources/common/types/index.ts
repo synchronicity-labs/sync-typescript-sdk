@@ -10,6 +10,7 @@ export * from "./GenerationOptions";
 export * from "./SyncMode";
 export * from "./GenerationStatus";
 export * from "./TtsProviderConfig";
+export * from "./ElevenLabs";
 export * from "./Tts";
 export * from "./Audio";
 export * from "./Video";
