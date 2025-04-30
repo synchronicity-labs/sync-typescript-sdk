@@ -1,6 +1,6 @@
 {
     "name": "@sync.so/syncsdk",
-    "version": "0.1.4",
+    "version": "0.1.5",
     "private": false,
     "repository": "https://github.com/synchronicity-labs/sync-typescript-sdk",
     "main": "./index.js",

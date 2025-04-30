@@ -77,8 +77,8 @@ export class Generate {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/syncsdk",
-                "X-Fern-SDK-Version": "0.1.4",
-                "User-Agent": "@sync.so/syncsdk/0.1.4",
+                "X-Fern-SDK-Version": "0.1.5",
+                "User-Agent": "@sync.so/syncsdk/0.1.5",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -168,8 +168,8 @@ export class Generate {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/syncsdk",
-                "X-Fern-SDK-Version": "0.1.4",
-                "User-Agent": "@sync.so/syncsdk/0.1.4",
+                "X-Fern-SDK-Version": "0.1.5",
+                "User-Agent": "@sync.so/syncsdk/0.1.5",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -263,8 +263,8 @@ export class Generate {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/syncsdk",
-                "X-Fern-SDK-Version": "0.1.4",
-                "User-Agent": "@sync.so/syncsdk/0.1.4",
+                "X-Fern-SDK-Version": "0.1.5",
+                "User-Agent": "@sync.so/syncsdk/0.1.5",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -363,8 +363,8 @@ export class Generate {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/syncsdk",
-                "X-Fern-SDK-Version": "0.1.4",
-                "User-Agent": "@sync.so/syncsdk/0.1.4",
+                "X-Fern-SDK-Version": "0.1.5",
+                "User-Agent": "@sync.so/syncsdk/0.1.5",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
