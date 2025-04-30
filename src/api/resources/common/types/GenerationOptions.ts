@@ -7,6 +7,18 @@ import * as Sync from "../../../index";
 export interface GenerationOptions {
     /** lipsync mode when audio and video durations are out of sync. By default if the audio and video durations are out of sync and audio is longer than video, the video will loop. Otherwise, the video will be cut off at the end of the audio. */
     sync_mode?: Sync.SyncMode;
+    /** generation temperature randomness between 0 and 1. only works for lipsync-2 based models. */
+    temperature?: number;
     /** Whether to detect active speaker and apply generation to them */
     active_speaker?: boolean;
+    /** number of frames to pad the video on each side */
+    pads?: number[];
+    /** speed up the video by this factor. */
+    speedup?: number;
+    /** output format of the generated video. */
+    output_format?: string;
+    /** frames per second of the generated video. */
+    fps?: number;
+    /** resolution of the generated video. */
+    output_resolution?: number[];
 }
