@@ -5,8 +5,6 @@
 import * as Sync from "../../../index";
 
 export interface GenerationError {
-    /** The type of error that occurred. */
-    error: string;
     /** A message describing the error. */
     message: Sync.GenerationErrorMessage;
     /** The type of error that occurred. */
