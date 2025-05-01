@@ -7,7 +7,7 @@ The Sync TypeScript library provides convenient access to the Sync API from Type
 
 ## Documentation
 
-API reference documentation is available [here](https://docs.sync.so/api-reference).
+API reference documentation is available [here](https://sync.docs.buildwithfern.com/api-reference).
 
 ## Installation
 
@@ -27,7 +27,7 @@ Instantiate and use the client with the following:
 import { SyncClient } from "@sync.so/sdk";
 
 const client = new SyncClient({ apiKey: "YOUR_API_KEY" });
-await client.generate.createGeneration({
+await client.generations.create({
     input: [
         {
             type: "video",
@@ -53,7 +53,7 @@ following namespace:
 ```typescript
 import { Sync } from "@sync.so/sdk";
 
-const request: Sync.LipsyncListGenerationsRequest = {
+const request: Sync.ListGenerationsRequest = {
     ...
 };
 ```
@@ -67,7 +67,7 @@ will be thrown.
 import { SyncError } from "@sync.so/sdk";
 
 try {
-    await client.generate.createGeneration(...);
+    await client.generations.create(...);
 } catch (err) {
     if (err instanceof SyncError) {
         console.log(err.statusCode);
@@ -85,7 +85,7 @@ try {
 If you would like to send additional headers as part of the request, use the `headers` request option.
 
 ```typescript
-const response = await client.generate.createGeneration(..., {
+const response = await client.generations.create(..., {
     headers: {
         'X-Custom-Header': 'custom value'
     }
@@ -107,7 +107,7 @@ A request is deemed retryable when any of the following HTTP status codes is ret
 Use the `maxRetries` request option to configure this behavior.
 
 ```typescript
-const response = await client.generate.createGeneration(..., {
+const response = await client.generations.create(..., {
     maxRetries: 0 // override maxRetries at the request level
 });
 ```
@@ -117,7 +117,7 @@ const response = await client.generate.createGeneration(..., {
 The SDK defaults to a 60 second timeout. Use the `timeoutInSeconds` option to configure this behavior.
 
 ```typescript
-const response = await client.generate.createGeneration(..., {
+const response = await client.generations.create(..., {
     timeoutInSeconds: 30 // override timeout to 30s
 });
 ```
@@ -128,7 +128,7 @@ The SDK allows users to abort requests at any point by passing in an abort signa
 
 ```typescript
 const controller = new AbortController();
-const response = await client.generate.createGeneration(..., {
+const response = await client.generations.create(..., {
     abortSignal: controller.signal
 });
 controller.abort(); // aborts the request
@@ -140,7 +140,7 @@ The SDK provides access to raw response data, including headers, through the `.w
 The `.withRawResponse()` method returns a promise that results to an object with a `data` and a `rawResponse` property.
 
 ```typescript
-const { data, rawResponse } = await client.generate.createGeneration(...).withRawResponse();
+const { data, rawResponse } = await client.generations.create(...).withRawResponse();
 
 console.log(data);
 console.log(rawResponse.headers['X-My-Header']);

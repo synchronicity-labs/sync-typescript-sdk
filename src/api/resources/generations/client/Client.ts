@@ -8,7 +8,7 @@ import * as Sync from "../../../index";
 import urlJoin from "url-join";
 import * as errors from "../../../../errors/index";
 
-export declare namespace Generate {
+export declare namespace Generations {
     export interface Options {
         environment?: core.Supplier<environments.SyncEnvironment | string>;
         /** Specify a custom URL to connect the client to. */
@@ -29,19 +29,19 @@ export declare namespace Generate {
     }
 }
 
-export class Generate {
-    constructor(protected readonly _options: Generate.Options) {}
+export class Generations {
+    constructor(protected readonly _options: Generations.Options) {}
 
     /**
      * @param {Sync.CreateGenerationDto} request
-     * @param {Generate.RequestOptions} requestOptions - Request-specific configuration.
+     * @param {Generations.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link Sync.BadRequestError}
      * @throws {@link Sync.UnauthorizedError}
      * @throws {@link Sync.InternalServerError}
      *
      * @example
-     *     await client.generate.createGeneration({
+     *     await client.generations.create({
      *         input: [{
      *                 type: "video",
      *                 url: "https://synchlabs-public.s3.us-west-2.amazonaws.com/david_demo_shortvid-03a10044-7741-4cfc-816a-5bccd392d1ee.mp4"
@@ -55,16 +55,16 @@ export class Generate {
      *         }
      *     })
      */
-    public createGeneration(
+    public create(
         request: Sync.CreateGenerationDto,
-        requestOptions?: Generate.RequestOptions,
+        requestOptions?: Generations.RequestOptions,
     ): core.HttpResponsePromise<Sync.Generation> {
-        return core.HttpResponsePromise.fromPromise(this.__createGeneration(request, requestOptions));
+        return core.HttpResponsePromise.fromPromise(this.__create(request, requestOptions));
     }
 
-    private async __createGeneration(
+    private async __create(
         request: Sync.CreateGenerationDto,
-        requestOptions?: Generate.RequestOptions,
+        requestOptions?: Generations.RequestOptions,
     ): Promise<core.WithRawResponse<Sync.Generation>> {
         const _response = await (this._options.fetcher ?? core.fetcher)({
             url: urlJoin(
@@ -77,8 +77,8 @@ export class Generate {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.1.7",
-                "User-Agent": "@sync.so/sdk/0.1.7",
+                "X-Fern-SDK-Version": "0.1.8",
+                "User-Agent": "@sync.so/sdk/0.1.8",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -137,25 +137,25 @@ export class Generate {
 
     /**
      * @param {Sync.GenerationId} id
-     * @param {Generate.RequestOptions} requestOptions - Request-specific configuration.
+     * @param {Generations.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link Sync.UnauthorizedError}
      * @throws {@link Sync.NotFoundError}
      * @throws {@link Sync.InternalServerError}
      *
      * @example
-     *     await client.generate.getGeneration("6533643b-acbe-4c40-967e-d9ba9baac39e")
+     *     await client.generations.get("6533643b-aceb-4c40-967e-d9ba9baac39e")
      */
-    public getGeneration(
+    public get(
         id: Sync.GenerationId,
-        requestOptions?: Generate.RequestOptions,
+        requestOptions?: Generations.RequestOptions,
     ): core.HttpResponsePromise<Sync.Generation> {
-        return core.HttpResponsePromise.fromPromise(this.__getGeneration(id, requestOptions));
+        return core.HttpResponsePromise.fromPromise(this.__get(id, requestOptions));
     }
 
-    private async __getGeneration(
+    private async __get(
         id: Sync.GenerationId,
-        requestOptions?: Generate.RequestOptions,
+        requestOptions?: Generations.RequestOptions,
     ): Promise<core.WithRawResponse<Sync.Generation>> {
         const _response = await (this._options.fetcher ?? core.fetcher)({
             url: urlJoin(
@@ -168,8 +168,8 @@ export class Generate {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.1.7",
-                "User-Agent": "@sync.so/sdk/0.1.7",
+                "X-Fern-SDK-Version": "0.1.8",
+                "User-Agent": "@sync.so/sdk/0.1.8",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -226,25 +226,25 @@ export class Generate {
     }
 
     /**
-     * @param {Sync.LipsyncListGenerationsRequest} request
-     * @param {Generate.RequestOptions} requestOptions - Request-specific configuration.
+     * @param {Sync.ListGenerationsRequest} request
+     * @param {Generations.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link Sync.UnauthorizedError}
      * @throws {@link Sync.InternalServerError}
      *
      * @example
-     *     await client.generate.listGenerations()
+     *     await client.generations.list()
      */
-    public listGenerations(
-        request: Sync.LipsyncListGenerationsRequest = {},
-        requestOptions?: Generate.RequestOptions,
+    public list(
+        request: Sync.ListGenerationsRequest = {},
+        requestOptions?: Generations.RequestOptions,
     ): core.HttpResponsePromise<Sync.Generation[]> {
-        return core.HttpResponsePromise.fromPromise(this.__listGenerations(request, requestOptions));
+        return core.HttpResponsePromise.fromPromise(this.__list(request, requestOptions));
     }
 
-    private async __listGenerations(
-        request: Sync.LipsyncListGenerationsRequest = {},
-        requestOptions?: Generate.RequestOptions,
+    private async __list(
+        request: Sync.ListGenerationsRequest = {},
+        requestOptions?: Generations.RequestOptions,
     ): Promise<core.WithRawResponse<Sync.Generation[]>> {
         const { status } = request;
         const _queryParams: Record<string, string | string[] | object | object[] | null> = {};
@@ -263,8 +263,8 @@ export class Generate {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.1.7",
-                "User-Agent": "@sync.so/sdk/0.1.7",
+                "X-Fern-SDK-Version": "0.1.8",
+                "User-Agent": "@sync.so/sdk/0.1.8",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -321,13 +321,13 @@ export class Generate {
 
     /**
      * @param {Sync.CreateGenerationDto} request
-     * @param {Generate.RequestOptions} requestOptions - Request-specific configuration.
+     * @param {Generations.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link Sync.UnauthorizedError}
      * @throws {@link Sync.InternalServerError}
      *
      * @example
-     *     await client.generate.estimateCost({
+     *     await client.generations.estimateCost({
      *         input: [{
      *                 type: "video",
      *                 url: "https://synchlabs-public.s3.us-west-2.amazonaws.com/david_demo_shortvid-03a10044-7741-4cfc-816a-5bccd392d1ee.mp4"
@@ -343,14 +343,14 @@ export class Generate {
      */
     public estimateCost(
         request: Sync.CreateGenerationDto,
-        requestOptions?: Generate.RequestOptions,
+        requestOptions?: Generations.RequestOptions,
     ): core.HttpResponsePromise<Sync.EstimatedGenerationCost[]> {
         return core.HttpResponsePromise.fromPromise(this.__estimateCost(request, requestOptions));
     }
 
     private async __estimateCost(
         request: Sync.CreateGenerationDto,
-        requestOptions?: Generate.RequestOptions,
+        requestOptions?: Generations.RequestOptions,
     ): Promise<core.WithRawResponse<Sync.EstimatedGenerationCost[]>> {
         const _response = await (this._options.fetcher ?? core.fetcher)({
             url: urlJoin(
@@ -363,8 +363,8 @@ export class Generate {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.1.7",
-                "User-Agent": "@sync.so/sdk/0.1.7",
+                "X-Fern-SDK-Version": "0.1.8",
+                "User-Agent": "@sync.so/sdk/0.1.8",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),

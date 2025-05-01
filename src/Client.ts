@@ -4,7 +4,7 @@
 
 import * as environments from "./environments";
 import * as core from "./core";
-import { Generate } from "./api/resources/generate/client/Client";
+import { Generations } from "./api/resources/generations/client/Client";
 
 export declare namespace SyncClient {
     export interface Options {
@@ -28,11 +28,11 @@ export declare namespace SyncClient {
 }
 
 export class SyncClient {
-    protected _generate: Generate | undefined;
+    protected _generations: Generations | undefined;
 
     constructor(protected readonly _options: SyncClient.Options) {}
 
-    public get generate(): Generate {
-        return (this._generate ??= new Generate(this._options));
+    public get generations(): Generations {
+        return (this._generations ??= new Generations(this._options));
     }
 }

@@ -1,8 +1,8 @@
 # Reference
 
-## Generate
+## Generations
 
-<details><summary><code>client.generate.<a href="/src/api/resources/generate/client/Client.ts">createGeneration</a>({ ...params }) -> Sync.Generation</code></summary>
+<details><summary><code>client.generations.<a href="/src/api/resources/generations/client/Client.ts">create</a>({ ...params }) -> Sync.Generation</code></summary>
 <dl>
 <dd>
 
@@ -15,7 +15,7 @@
 <dd>
 
 ```typescript
-await client.generate.createGeneration({
+await client.generations.create({
     input: [
         {
             type: "video",
@@ -54,7 +54,7 @@ await client.generate.createGeneration({
 <dl>
 <dd>
 
-**requestOptions:** `Generate.RequestOptions`
+**requestOptions:** `Generations.RequestOptions`
 
 </dd>
 </dl>
@@ -65,7 +65,7 @@ await client.generate.createGeneration({
 </dl>
 </details>
 
-<details><summary><code>client.generate.<a href="/src/api/resources/generate/client/Client.ts">getGeneration</a>(id) -> Sync.Generation</code></summary>
+<details><summary><code>client.generations.<a href="/src/api/resources/generations/client/Client.ts">get</a>(id) -> Sync.Generation</code></summary>
 <dl>
 <dd>
 
@@ -78,7 +78,7 @@ await client.generate.createGeneration({
 <dd>
 
 ```typescript
-await client.generate.getGeneration("6533643b-acbe-4c40-967e-d9ba9baac39e");
+await client.generations.get("6533643b-aceb-4c40-967e-d9ba9baac39e");
 ```
 
 </dd>
@@ -102,7 +102,7 @@ await client.generate.getGeneration("6533643b-acbe-4c40-967e-d9ba9baac39e");
 <dl>
 <dd>
 
-**requestOptions:** `Generate.RequestOptions`
+**requestOptions:** `Generations.RequestOptions`
 
 </dd>
 </dl>
@@ -113,7 +113,7 @@ await client.generate.getGeneration("6533643b-acbe-4c40-967e-d9ba9baac39e");
 </dl>
 </details>
 
-<details><summary><code>client.generate.<a href="/src/api/resources/generate/client/Client.ts">listGenerations</a>({ ...params }) -> Sync.Generation[]</code></summary>
+<details><summary><code>client.generations.<a href="/src/api/resources/generations/client/Client.ts">list</a>({ ...params }) -> Sync.Generation[]</code></summary>
 <dl>
 <dd>
 
@@ -126,7 +126,7 @@ await client.generate.getGeneration("6533643b-acbe-4c40-967e-d9ba9baac39e");
 <dd>
 
 ```typescript
-await client.generate.listGenerations();
+await client.generations.list();
 ```
 
 </dd>
@@ -142,7 +142,7 @@ await client.generate.listGenerations();
 <dl>
 <dd>
 
-**request:** `Sync.LipsyncListGenerationsRequest`
+**request:** `Sync.ListGenerationsRequest`
 
 </dd>
 </dl>
@@ -150,7 +150,7 @@ await client.generate.listGenerations();
 <dl>
 <dd>
 
-**requestOptions:** `Generate.RequestOptions`
+**requestOptions:** `Generations.RequestOptions`
 
 </dd>
 </dl>
@@ -161,7 +161,7 @@ await client.generate.listGenerations();
 </dl>
 </details>
 
-<details><summary><code>client.generate.<a href="/src/api/resources/generate/client/Client.ts">estimateCost</a>({ ...params }) -> Sync.EstimatedGenerationCost[]</code></summary>
+<details><summary><code>client.generations.<a href="/src/api/resources/generations/client/Client.ts">estimateCost</a>({ ...params }) -> Sync.EstimatedGenerationCost[]</code></summary>
 <dl>
 <dd>
 
@@ -174,7 +174,7 @@ await client.generate.listGenerations();
 <dd>
 
 ```typescript
-await client.generate.estimateCost({
+await client.generations.estimateCost({
     input: [
         {
             type: "video",
@@ -213,7 +213,7 @@ await client.generate.estimateCost({
 <dl>
 <dd>
 
-**requestOptions:** `Generate.RequestOptions`
+**requestOptions:** `Generations.RequestOptions`
 
 </dd>
 </dl>

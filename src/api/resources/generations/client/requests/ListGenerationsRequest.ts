@@ -8,7 +8,7 @@ import * as Sync from "../../../../index";
  * @example
  *     {}
  */
-export interface LipsyncListGenerationsRequest {
+export interface ListGenerationsRequest {
     /**
      * Filter generations by status
      */
