@@ -4,6 +4,7 @@
 
 export const SyncEnvironment = {
     Default: "https://api.sync.so",
+    Dev: "https://dev-api.sync.so",
 } as const;
 
-export type SyncEnvironment = typeof SyncEnvironment.Default;
+export type SyncEnvironment = typeof SyncEnvironment.Default | typeof SyncEnvironment.Dev;

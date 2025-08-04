@@ -20,6 +20,8 @@ export interface Generation {
     outputDuration?: number;
     /** The URL of the output media. */
     outputUrl?: string;
+    /** The URL of the segment output media. */
+    segmentOutputUrl?: string;
     /** The status of the generation. */
     status: Sync.GenerationStatus;
     /** The URL to the webhook endpoint. */

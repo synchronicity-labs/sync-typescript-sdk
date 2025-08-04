@@ -7,6 +7,9 @@ import * as core from "../../../../core";
 import * as Sync from "../../../index";
 import urlJoin from "url-join";
 import * as errors from "../../../../errors/index";
+import * as fs from "fs";
+import { Blob } from "buffer";
+import { toJson } from "../../../../core/json";
 
 export declare namespace Generations {
     export interface Options {
@@ -77,8 +80,8 @@ export class Generations {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.1.9",
-                "User-Agent": "@sync.so/sdk/0.1.9",
+                "X-Fern-SDK-Version": "0.2.1",
+                "User-Agent": "@sync.so/sdk/0.2.1",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -87,6 +90,131 @@ export class Generations {
             contentType: "application/json",
             requestType: "json",
             body: request,
+            timeoutMs: requestOptions?.timeoutInSeconds != null ? requestOptions.timeoutInSeconds * 1000 : 60000,
+            maxRetries: requestOptions?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+        });
+        if (_response.ok) {
+            return { data: _response.body as Sync.Generation, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 400:
+                    throw new Sync.BadRequestError(_response.error.body as Sync.GenerationError, _response.rawResponse);
+                case 401:
+                    throw new Sync.UnauthorizedError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 500:
+                    throw new Sync.InternalServerError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                default:
+                    throw new errors.SyncError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        switch (_response.error.reason) {
+            case "non-json":
+                throw new errors.SyncError({
+                    statusCode: _response.error.statusCode,
+                    body: _response.error.rawBody,
+                    rawResponse: _response.rawResponse,
+                });
+            case "timeout":
+                throw new errors.SyncTimeoutError("Timeout exceeded when calling POST /v2/generate.");
+            case "unknown":
+                throw new errors.SyncError({
+                    message: _response.error.errorMessage,
+                    rawResponse: _response.rawResponse,
+                });
+        }
+    }
+
+    /**
+     * @param {File | fs.ReadStream | Blob | undefined} video
+     * @param {File | fs.ReadStream | Blob | undefined} audio
+     * @param {Sync.CreateGenerationRequest} request
+     * @param {Generations.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link Sync.BadRequestError}
+     * @throws {@link Sync.UnauthorizedError}
+     * @throws {@link Sync.InternalServerError}
+     *
+     * @example
+     *     await client.generations.createWithFiles(fs.createReadStream("/path/to/your/file"), fs.createReadStream("/path/to/your/file"), {
+     *         model: "lipsync-2"
+     *     })
+     */
+    public createWithFiles(
+        video: File | fs.ReadStream | Blob | undefined,
+        audio: File | fs.ReadStream | Blob | undefined,
+        request: Sync.CreateGenerationRequest,
+        requestOptions?: Generations.RequestOptions,
+    ): core.HttpResponsePromise<Sync.Generation> {
+        return core.HttpResponsePromise.fromPromise(this.__createWithFiles(video, audio, request, requestOptions));
+    }
+
+    private async __createWithFiles(
+        video: File | fs.ReadStream | Blob | undefined,
+        audio: File | fs.ReadStream | Blob | undefined,
+        request: Sync.CreateGenerationRequest,
+        requestOptions?: Generations.RequestOptions,
+    ): Promise<core.WithRawResponse<Sync.Generation>> {
+        const _request = await core.newFormData();
+        if (video != null) {
+            await _request.appendFile("video", video);
+        }
+
+        if (audio != null) {
+            await _request.appendFile("audio", audio);
+        }
+
+        _request.append("model", request.model);
+        if (request.input != null) {
+            for (const _item of request.input) {
+                _request.append("input", typeof _item === "string" ? _item : toJson(_item));
+            }
+        }
+
+        if (request.options != null) {
+            _request.append("options", toJson(request.options));
+        }
+
+        if (request.webhookUrl != null) {
+            _request.append("webhookUrl", request.webhookUrl);
+        }
+
+        const _maybeEncodedRequest = await _request.getRequest();
+        const _response = await (this._options.fetcher ?? core.fetcher)({
+            url: urlJoin(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.SyncEnvironment.Default,
+                "/v2/generate",
+            ),
+            method: "POST",
+            headers: {
+                "X-Fern-Language": "JavaScript",
+                "X-Fern-SDK-Name": "@sync.so/sdk",
+                "X-Fern-SDK-Version": "0.2.1",
+                "User-Agent": "@sync.so/sdk/0.2.1",
+                "X-Fern-Runtime": core.RUNTIME.type,
+                "X-Fern-Runtime-Version": core.RUNTIME.version,
+                ...(await this._getCustomAuthorizationHeaders()),
+                ..._maybeEncodedRequest.headers,
+                ...requestOptions?.headers,
+            },
+            requestType: "file",
+            duplex: _maybeEncodedRequest.duplex,
+            body: _maybeEncodedRequest.body,
             timeoutMs: requestOptions?.timeoutInSeconds != null ? requestOptions.timeoutInSeconds * 1000 : 60000,
             maxRetries: requestOptions?.maxRetries,
             abortSignal: requestOptions?.abortSignal,
@@ -168,8 +296,8 @@ export class Generations {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.1.9",
-                "User-Agent": "@sync.so/sdk/0.1.9",
+                "X-Fern-SDK-Version": "0.2.1",
+                "User-Agent": "@sync.so/sdk/0.2.1",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -263,8 +391,8 @@ export class Generations {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.1.9",
-                "User-Agent": "@sync.so/sdk/0.1.9",
+                "X-Fern-SDK-Version": "0.2.1",
+                "User-Agent": "@sync.so/sdk/0.2.1",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -363,8 +491,8 @@ export class Generations {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.1.9",
-                "User-Agent": "@sync.so/sdk/0.1.9",
+                "X-Fern-SDK-Version": "0.2.1",
+                "User-Agent": "@sync.so/sdk/0.2.1",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),

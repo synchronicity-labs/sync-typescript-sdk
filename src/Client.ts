@@ -4,6 +4,7 @@
 
 import * as environments from "./environments";
 import * as core from "./core";
+import { Batch } from "./api/resources/batch/client/Client";
 import { Generations } from "./api/resources/generations/client/Client";
 
 export declare namespace SyncClient {
@@ -28,9 +29,14 @@ export declare namespace SyncClient {
 }
 
 export class SyncClient {
+    protected _batch: Batch | undefined;
     protected _generations: Generations | undefined;
 
     constructor(protected readonly _options: SyncClient.Options) {}
+
+    public get batch(): Batch {
+        return (this._batch ??= new Batch(this._options));
+    }
 
     public get generations(): Generations {
         return (this._generations ??= new Generations(this._options));

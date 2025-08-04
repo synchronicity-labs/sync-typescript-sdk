@@ -21,6 +21,8 @@ export interface GenerationNotification {
     outputDuration?: number;
     /** url of the generated output media */
     outputUrl?: string;
+    /** url of the segment output media */
+    segmentOutputUrl?: string;
     /** url of the webhook server */
     webhookUrl?: string;
 }

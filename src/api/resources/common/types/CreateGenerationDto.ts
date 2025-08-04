@@ -13,4 +13,6 @@ export interface CreateGenerationDto {
     options?: Sync.GenerationOptions;
     /** webhook url for generation status updates. once the generation completes we will send a POST request to the webhook url with the generation data. */
     webhookUrl?: string;
+    /** Base filename for the generated output without extension. The .mp4 extension will be added automatically.  Only alphanumeric characters, underscores, and hyphens are allowed, up to 255 characters. */
+    outputFileName?: string;
 }
