@@ -1,13 +1,13 @@
-# Sync TypeScript Library
+# Sync TypeScript SDK
 
 [![fern shield](https://img.shields.io/badge/%F0%9F%8C%BF-Built%20with%20Fern-brightgreen)](https://buildwithfern.com?utm_source=github&utm_medium=github&utm_campaign=readme&utm_source=https%3A%2F%2Fgithub.com%2Fsynchronicity-labs%2Fsync-typescript-sdk)
 [![npm shield](https://img.shields.io/npm/v/@sync.so/sdk)](https://www.npmjs.com/package/@sync.so/sdk)
 
-The Sync TypeScript library provides convenient access to the Sync API from TypeScript.
+The Sync TypeScript SDK provides convenient access to the Sync API from TypeScript.
 
 ## Documentation
 
-API reference documentation is available [here](https://sync.docs.buildwithfern.com/api-reference).
+API reference documentation is available [here](https://docs.sync.so/api-reference).
 
 ## Installation
 
@@ -21,13 +21,13 @@ A full reference for this library is available [here](./reference.md).
 
 ## Usage
 
-Instantiate and use the client with the following:
+Set SYNC_API_KEY environment variable to your [Sync](https://sync.so/settings/api-keys) and use the client with the following:
 
 ```typescript
 import { SyncClient } from "@sync.so/sdk";
 
-const client = new SyncClient({ apiKey: "YOUR_API_KEY" });
-await client.generations.create({
+const sync = new SyncClient();
+await sync.generations.create({
     input: [
         {
             type: "video",
