@@ -9,6 +9,8 @@ export interface Generation {
     createdAt: string;
     /** The error message if the generation failed. */
     error?: string;
+    /** The error code if the generation failed. */
+    error_code?: string;
     id: Sync.GenerationId;
     /** An array of input objects used for generation. */
     input: Sync.Input[];

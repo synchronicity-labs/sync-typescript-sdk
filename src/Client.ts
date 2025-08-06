@@ -12,7 +12,7 @@ export declare namespace SyncClient {
         environment?: core.Supplier<environments.SyncEnvironment | string>;
         /** Specify a custom URL to connect the client to. */
         baseUrl?: core.Supplier<string>;
-        apiKey: core.Supplier<string>;
+        apiKey?: core.Supplier<string>;
         fetcher?: core.FetchFunction;
     }
 
@@ -32,7 +32,7 @@ export class SyncClient {
     protected _batch: Batch | undefined;
     protected _generations: Generations | undefined;
 
-    constructor(protected readonly _options: SyncClient.Options) {}
+    constructor(protected readonly _options: SyncClient.Options = {}) {}
 
     public get batch(): Batch {
         return (this._batch ??= new Batch(this._options));

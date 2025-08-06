@@ -15,7 +15,7 @@ export declare namespace Batch {
         environment?: core.Supplier<environments.SyncEnvironment | string>;
         /** Specify a custom URL to connect the client to. */
         baseUrl?: core.Supplier<string>;
-        apiKey: core.Supplier<string>;
+        apiKey?: core.Supplier<string>;
         fetcher?: core.FetchFunction;
     }
 
@@ -32,7 +32,7 @@ export declare namespace Batch {
 }
 
 export class Batch {
-    constructor(protected readonly _options: Batch.Options) {}
+    constructor(protected readonly _options: Batch.Options = {}) {}
 
     /**
      * API for [Batch Processing](/api-reference/guides/batch-processing). Available only for `Scale` and `Enterprise` plans.
@@ -93,8 +93,8 @@ export class Batch {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.2.1",
-                "User-Agent": "@sync.so/sdk/0.2.1",
+                "X-Fern-SDK-Version": "0.2.2",
+                "User-Agent": "@sync.so/sdk/0.2.2",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -194,8 +194,8 @@ export class Batch {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.2.1",
-                "User-Agent": "@sync.so/sdk/0.2.1",
+                "X-Fern-SDK-Version": "0.2.2",
+                "User-Agent": "@sync.so/sdk/0.2.2",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -299,8 +299,8 @@ export class Batch {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.2.1",
-                "User-Agent": "@sync.so/sdk/0.2.1",
+                "X-Fern-SDK-Version": "0.2.2",
+                "User-Agent": "@sync.so/sdk/0.2.2",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -356,7 +356,7 @@ export class Batch {
     }
 
     protected async _getCustomAuthorizationHeaders() {
-        const apiKeyValue = await core.Supplier.get(this._options.apiKey);
+        const apiKeyValue = (await core.Supplier.get(this._options.apiKey)) ?? process?.env["SYNC_API_KEY"];
         return { "x-api-key": apiKeyValue };
     }
 }

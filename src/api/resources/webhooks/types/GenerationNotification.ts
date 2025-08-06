@@ -15,6 +15,8 @@ export interface GenerationNotification {
     model: Sync.Model;
     /** error message if the generation failed */
     error?: string;
+    /** error code if the generation failed */
+    error_code?: string;
     /** options used for the generation */
     options?: Sync.GenerationOptions;
     /** generated output media duration in seconds */
