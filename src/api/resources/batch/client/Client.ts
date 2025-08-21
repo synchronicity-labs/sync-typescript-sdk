@@ -93,8 +93,8 @@ export class Batch {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.2.2",
-                "User-Agent": "@sync.so/sdk/0.2.2",
+                "X-Fern-SDK-Version": "0.2.3",
+                "User-Agent": "@sync.so/sdk/0.2.3",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -194,8 +194,8 @@ export class Batch {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.2.2",
-                "User-Agent": "@sync.so/sdk/0.2.2",
+                "X-Fern-SDK-Version": "0.2.3",
+                "User-Agent": "@sync.so/sdk/0.2.3",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -299,8 +299,8 @@ export class Batch {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.2.2",
-                "User-Agent": "@sync.so/sdk/0.2.2",
+                "X-Fern-SDK-Version": "0.2.3",
+                "User-Agent": "@sync.so/sdk/0.2.3",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
