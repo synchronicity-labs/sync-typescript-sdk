@@ -22,6 +22,8 @@ export interface Generation {
     outputDuration?: number;
     /** The URL of the output media. */
     outputUrl?: string;
+    /** The segments of the generation. */
+    segments?: Sync.GenerationSegment[];
     /** The URL of the segment output media. */
     segmentOutputUrl?: string;
     /** The status of the generation. */

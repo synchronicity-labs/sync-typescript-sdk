@@ -9,9 +9,9 @@ import * as Sync from "../../../index";
  */
 export interface GenerationSegment {
     /** Segment start time in seconds */
-    start_time: number;
+    startTime: number;
     /** Segment end time in seconds */
-    end_time: number;
+    endTime: number;
     /** Audio configuration for this segment */
-    audio_input: Sync.SegmentAudioInput;
+    audioInput: Sync.SegmentAudioInput;
 }
