@@ -11,4 +11,6 @@ export interface Tts {
     type: "text";
     /** Integration provider configuration */
     provider: Sync.TtsProviderConfig;
+    /** Reference identifier for this audio input, used to link audio inputs to specific segments when using [segments](/api-reference/api/generate-api/create#request.body.segments). Required when using segments array. */
+    refId?: string;
 }

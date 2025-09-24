@@ -17,6 +17,8 @@ export * from "./Audio";
 export * from "./Video";
 export * from "./SegmentSecs";
 export * from "./SegmentFrames";
+export * from "./GenerationSegment";
+export * from "./SegmentAudioInput";
 export * from "./BatchId";
 export * from "./BatchResponse";
 export * from "./BatchStatus";

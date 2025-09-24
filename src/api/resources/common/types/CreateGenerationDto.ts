@@ -7,10 +7,12 @@ import * as Sync from "../../../index";
 export interface CreateGenerationDto {
     /** name of the model to use for generation. */
     model: Sync.Model;
-    /** Array of input objects. Must include one video input item and one audio input item. Audio input items can be provided as either: recorded/captured audio url or a text-to-speech input with tts provider configuration. */
+    /** Array of input objects. Must include one video input item and at least one audio input item. Audio input items can be provided as either: recorded/captured audio url or a text-to-speech input with tts provider configuration. When using segments, multiple audio inputs can be provided with unique refId values. */
     input: Sync.Input[];
     /** additional options available for generation. */
     options?: Sync.GenerationOptions;
+    /** segments definition list. When provided, allows defining one or more video segments with different audio inputs for each segment. Each segment specifies a time range and references an audio input by refId. */
+    segments?: Sync.GenerationSegment[];
     /** webhook url for generation status updates. once the generation completes we will send a POST request to the webhook url with the generation data. */
     webhookUrl?: string;
     /** Base filename for the generated output without extension. The .mp4 extension will be added automatically.  Only alphanumeric characters, underscores, and hyphens are allowed, up to 255 characters. */
