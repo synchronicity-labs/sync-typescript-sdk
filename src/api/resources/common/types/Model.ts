@@ -5,9 +5,10 @@
 /**
  * name of the model to use for generation.
  */
-export type Model = "lipsync-2" | "lipsync-1.9.0-beta" | "lipsync-2-pro";
+export type Model = "lipsync-2" | "lipsync-1.9.0-beta" | "lipsync-2-pro" | "react-1";
 export const Model = {
     Lipsync2: "lipsync-2",
     Lipsync190Beta: "lipsync-1.9.0-beta",
     Lipsync2Pro: "lipsync-2-pro",
+    React1: "react-1",
 } as const;

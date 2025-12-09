@@ -8,8 +8,8 @@ export interface Video {
     type: "video";
     /** URL of the video to be used for generation */
     url: string;
-    /** [DEPRECATED] Use the top-level segments array instead for multi-segment support. Start time and end time (in seconds) of the video segment to apply generation to. Configured as a list of lists, where each inner list contains the start time and end time of the segment. Currently only one segment is supported. ex: [[10.5, 20.5]] will lipsync only the segment between 10.5 and 20.5 seconds of the video. */
+    /** [DEPRECATED] Use the top-level [segments](/api-reference/api/generate-api/create#request.body.segments) array instead for multi-segment support. */
     segments_secs?: Sync.SegmentSecs;
-    /** [DEPRECATED] Use the top-level segments array instead for multi-segment support. Start frame and end frame of the video segment to apply generation to. Configured as a list of lists, where each inner list contains the start frame and end frame of the segment. Currently only one segment is supported. ex: [[100, 200]] will lipsync only the segment between frames 100 and 200 of the video */
+    /** [DEPRECATED] Use the top-level [segments](/api-reference/api/generate-api/create#request.body.segments) array instead for multi-segment support. frames 100 and 200 of the video */
     segments_frames?: Sync.SegmentFrames;
 }

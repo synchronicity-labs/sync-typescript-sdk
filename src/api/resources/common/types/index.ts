@@ -2,6 +2,8 @@ export * from "./GenerationId";
 export * from "./CreateGenerationDto";
 export * from "./Input";
 export * from "./Model";
+export * from "./Emotion";
+export * from "./ModelMode";
 export * from "./EstimatedGenerationCost";
 export * from "./Generation";
 export * from "./GenerationError";

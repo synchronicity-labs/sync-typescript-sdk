@@ -7,6 +7,10 @@ import * as Sync from "../../../index";
 export interface GenerationOptions {
     /** Defines how to handle duration mismatches between video and audio inputs. See the [Media Content Tips](/compatibility-and-tips/media-content-tips#sync-mode-options) guide for a brief overview,  or the SyncMode enum below for detailed explanations of each option. */
     sync_mode?: Sync.SyncMode;
+    /** edit region for the model. only works with react-1. defaults to face, which affects lipsync + emotions in the face region. Available options are lips/face/head. When head is selected, model generates natural talking head movements along with emotions + lipsync. */
+    model_mode?: Sync.ModelMode;
+    /** emotion prompt for the generation. only works for react-1 model. Only single word emotions are supported at the moment. */
+    prompt?: Sync.Emotion;
     /** option to control how expressive lipsync can be. 0 -> least expressive, 1 -> most expressive. default:0.5 */
     temperature?: number;
     /** Active speaker detection configuration. When enabled, automatically detects and applies lipsync only to the active speaker in videos with multiple people. */
