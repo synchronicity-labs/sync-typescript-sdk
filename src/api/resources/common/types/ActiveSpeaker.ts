@@ -8,4 +8,10 @@
 export interface ActiveSpeaker {
     /** Whether to automatically detect and apply generation to the active speaker */
     auto_detect?: boolean;
+    /** Frame index that corresponds to the provided coordinates for manual speaker selection */
+    frame_number?: number;
+    /** Reference point [x, y] on the speaker's face in the specified frame_number */
+    coordinates?: number[];
+    /** Per-frame array of bounding boxes [x1, y1, x2, y2] for the detected face, or null if no box for that frame. Use instead of frame_number + coordinates when you already have detection data. */
+    bounding_boxes?: (number[] | undefined)[];
 }

@@ -4,8 +4,12 @@
 
 export interface ElevenLabs {
     name: "elevenlabs";
-    /** id of the voice to be used for generation */
+    /** sync voice id (copied from cloned voices in the Studio) or ElevenLabs voice ID. Required. */
     voiceId: string;
     /** script to be used for generation */
     script: string;
+    /** determines how stable the voice is and the randomness between each generation. lower values introduce broader emotional range for the voice. higher values can result in a monotonous voice with limited emotion. */
+    stability?: number;
+    /** determines how closely the ai should adhere to the original voice when attempting to replicate it. */
+    similarityBoost?: number;
 }
