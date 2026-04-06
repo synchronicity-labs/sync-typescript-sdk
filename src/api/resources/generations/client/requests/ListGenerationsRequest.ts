@@ -10,7 +10,11 @@ import * as Sync from "../../../../index";
  */
 export interface ListGenerationsRequest {
     /**
-     * Filter generations by status
+     * Filter generations by status. Accepts multiple statuses as a comma-separated list.
      */
-    status?: Sync.GenerationStatus;
+    status?: Sync.GenerationStatus[];
+    /**
+     * Filter generations by ID. Accepts multiple IDs as a comma-separated list.
+     */
+    ids?: string[];
 }

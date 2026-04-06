@@ -4,10 +4,15 @@
 
 import * as Sync from "../../../index";
 
+/**
+ * Video input for generation. Provide either `url` or `assetId` (one is required).
+ */
 export interface Video {
     type: "video";
-    /** URL of the video to be used for generation */
-    url: string;
+    /** URL of the video to be used for generation. Either `url` or `assetId` must be provided. */
+    url?: string;
+    /** ID of a video asset from your media library. Either `url` or `assetId` must be provided. */
+    assetId?: Sync.AssetId;
     /** [DEPRECATED] Use the top-level [segments](/api-reference/api/generate-api/create#request.body.segments) array instead for multi-segment support. */
     segments_secs?: Sync.SegmentSecs;
     /** [DEPRECATED] Use the top-level [segments](/api-reference/api/generate-api/create#request.body.segments) array instead for multi-segment support. frames 100 and 200 of the video */

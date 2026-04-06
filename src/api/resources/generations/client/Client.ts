@@ -80,8 +80,8 @@ export class Generations {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.2.7",
-                "User-Agent": "@sync.so/sdk/0.2.7",
+                "X-Fern-SDK-Version": "0.3.0",
+                "User-Agent": "@sync.so/sdk/0.3.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -204,8 +204,8 @@ export class Generations {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.2.7",
-                "User-Agent": "@sync.so/sdk/0.2.7",
+                "X-Fern-SDK-Version": "0.3.0",
+                "User-Agent": "@sync.so/sdk/0.3.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -296,8 +296,8 @@ export class Generations {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.2.7",
-                "User-Agent": "@sync.so/sdk/0.2.7",
+                "X-Fern-SDK-Version": "0.3.0",
+                "User-Agent": "@sync.so/sdk/0.3.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -374,10 +374,14 @@ export class Generations {
         request: Sync.ListGenerationsRequest = {},
         requestOptions?: Generations.RequestOptions,
     ): Promise<core.WithRawResponse<Sync.Generation[]>> {
-        const { status } = request;
+        const { status, ids } = request;
         const _queryParams: Record<string, string | string[] | object | object[] | null> = {};
         if (status != null) {
-            _queryParams["status"] = status;
+            _queryParams["status"] = toJson(status);
+        }
+
+        if (ids != null) {
+            _queryParams["ids"] = toJson(ids);
         }
 
         const _response = await (this._options.fetcher ?? core.fetcher)({
@@ -391,8 +395,8 @@ export class Generations {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.2.7",
-                "User-Agent": "@sync.so/sdk/0.2.7",
+                "X-Fern-SDK-Version": "0.3.0",
+                "User-Agent": "@sync.so/sdk/0.3.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -491,8 +495,8 @@ export class Generations {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.2.7",
-                "User-Agent": "@sync.so/sdk/0.2.7",
+                "X-Fern-SDK-Version": "0.3.0",
+                "User-Agent": "@sync.so/sdk/0.3.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),

@@ -1,5 +1,136 @@
 # Reference
 
+## Assets
+
+<details><summary><code>client.assets.<a href="/src/api/resources/assets/client/Client.ts">list</a>({ ...params }) -> Sync.PaginatedAssetsResponse</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+List all assets in your organization's media library.
+
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```typescript
+await client.assets.list({
+    limit: 10,
+    sortBy: "dateDesc",
+});
+```
+
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**request:** `Sync.ListAssetsRequest`
+
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**requestOptions:** `Assets.RequestOptions`
+
+</dd>
+</dl>
+</dd>
+</dl>
+
+</dd>
+</dl>
+</details>
+
+<details><summary><code>client.assets.<a href="/src/api/resources/assets/client/Client.ts">get</a>(id) -> Sync.Asset</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+Retrieve a specific asset by ID.
+
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```typescript
+await client.assets.get("550e8400-e29b-41d4-a716-446655440000");
+```
+
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**id:** `Sync.AssetId`
+
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**requestOptions:** `Assets.RequestOptions`
+
+</dd>
+</dl>
+</dd>
+</dl>
+
+</dd>
+</dl>
+</details>
+
 ## Batch
 
 <details><summary><code>client.batch.<a href="/src/api/resources/batch/client/Client.ts">create</a>(input, { ...params }) -> Sync.CreateBatchResponse</code></summary>
@@ -486,6 +617,63 @@ await client.generations.estimateCost({
 <dd>
 
 **requestOptions:** `Generations.RequestOptions`
+
+</dd>
+</dl>
+</dd>
+</dl>
+
+</dd>
+</dl>
+</details>
+
+## Models
+
+<details><summary><code>client.models.<a href="/src/api/resources/models/client/Client.ts">list</a>() -> Sync.ModelInfo[]</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+List all available models for the authenticated user. Returns active (non-deprecated) models the user has access to, including any feature-flagged models enabled for their account.
+
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```typescript
+await client.models.list();
+```
+
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**requestOptions:** `Models.RequestOptions`
 
 </dd>
 </dl>

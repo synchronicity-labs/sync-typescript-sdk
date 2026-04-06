@@ -4,8 +4,10 @@
 
 import * as environments from "./environments";
 import * as core from "./core";
+import { Assets } from "./api/resources/assets/client/Client";
 import { Batch } from "./api/resources/batch/client/Client";
 import { Generations } from "./api/resources/generations/client/Client";
+import { Models } from "./api/resources/models/client/Client";
 
 export declare namespace SyncClient {
     export interface Options {
@@ -29,10 +31,16 @@ export declare namespace SyncClient {
 }
 
 export class SyncClient {
+    protected _assets: Assets | undefined;
     protected _batch: Batch | undefined;
     protected _generations: Generations | undefined;
+    protected _models: Models | undefined;
 
     constructor(protected readonly _options: SyncClient.Options = {}) {}
+
+    public get assets(): Assets {
+        return (this._assets ??= new Assets(this._options));
+    }
 
     public get batch(): Batch {
         return (this._batch ??= new Batch(this._options));
@@ -40,5 +48,9 @@ export class SyncClient {
 
     public get generations(): Generations {
         return (this._generations ??= new Generations(this._options));
+    }
+
+    public get models(): Models {
+        return (this._models ??= new Models(this._options));
     }
 }
