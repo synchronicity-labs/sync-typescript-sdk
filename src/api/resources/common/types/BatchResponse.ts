@@ -12,8 +12,8 @@ export interface BatchResponse {
     status: Sync.BatchStatus;
     /** Metrics about the batch processing progress. */
     metrics: Sync.BatchMetrics;
-    /** The webhook URL for batch status notifications. */
+    /** The webhook URL for batch status notifications. Deliveries include a Sync-Signature header signed with the organization webhook secret. */
     webhookUrl?: string;
-    /** The URL to download the batch results file (available when completed). */
+    /** The URL to download the batch results file when completed. A GET request follows a 302 redirect to a signed JSONL result URL. */
     outputUrl: string;
 }

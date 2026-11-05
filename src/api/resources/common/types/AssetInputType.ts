@@ -5,12 +5,32 @@
 /**
  * The source type of the asset.
  */
-export type AssetInputType = "UPLOAD" | "URL" | "RECORD" | "TTS" | "EXTRACT" | "PLATFORM_IMPORT";
+export type AssetInputType =
+    | "UPLOAD"
+    | "URL"
+    | "RECORD"
+    | "TTS"
+    | "EXTRACT"
+    | "DUB"
+    | "DUB_SOURCE"
+    | "PLATFORM_IMPORT"
+    | "DIALOGUE_EDIT"
+    | "PLUGIN_PREMIERE_FILE"
+    | "PLUGIN_PREMIERE_TIMELINE_SELECTION"
+    | "PLUGIN_RESOLVE_FILE"
+    | "PLUGIN_RESOLVE_TIMELINE_SELECTION";
 export const AssetInputType = {
     Upload: "UPLOAD",
     Url: "URL",
     Record: "RECORD",
     Tts: "TTS",
     Extract: "EXTRACT",
+    Dub: "DUB",
+    DubSource: "DUB_SOURCE",
     PlatformImport: "PLATFORM_IMPORT",
+    DialogueEdit: "DIALOGUE_EDIT",
+    PluginPremiereFile: "PLUGIN_PREMIERE_FILE",
+    PluginPremiereTimelineSelection: "PLUGIN_PREMIERE_TIMELINE_SELECTION",
+    PluginResolveFile: "PLUGIN_RESOLVE_FILE",
+    PluginResolveTimelineSelection: "PLUGIN_RESOLVE_TIMELINE_SELECTION",
 } as const;

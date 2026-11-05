@@ -35,4 +35,8 @@ export interface Asset {
     width?: number;
     /** Height in pixels (for video/image). */
     height?: number;
+    /** The id of the project this asset is attached to, or null when it belongs to no project. */
+    projectId?: Sync.ProjectId;
+    /** Stable API proxy path for authenticated media playback. */
+    proxyPath?: string | null;
 }

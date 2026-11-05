@@ -8,10 +8,18 @@ import * as Sync from "../../../index";
  * Defines a video segment with its corresponding audio input. Used for multi-segment lipsync generations where different audio tracks can be applied to different video segments.
  */
 export interface GenerationSegment {
-    /** Segment start time in seconds */
-    startTime: number;
-    /** Segment end time in seconds */
-    endTime: number;
-    /** Audio configuration for this segment */
-    audioInput: Sync.SegmentAudioInput;
+    /** Segment start time in seconds. Must be less than or equal to endTime. */
+    startTime?: number;
+    /** Segment end time in seconds. Must be greater than or equal to startTime. */
+    endTime?: number;
+    /** Segment start frame. Use with endFrame instead of time bounds. */
+    startFrame?: number;
+    /** Segment end frame. Use with startFrame instead of time bounds. */
+    endFrame?: number;
+    /** Audio configuration for this segment. Required unless lipsync is false. */
+    audioInput?: Sync.SegmentAudioInput;
+    /** Set to false to keep this part of the video exactly as it is: it is not lipsynced and not billed. The finished output then plays one audio track over the whole video (see outputAudio), so this part hears it too, with no cuts at segment edges. Defaults to true. */
+    lipsync?: boolean;
+    /** Override generation options for this specific segment. */
+    optionsOverride?: Sync.SegmentOptionsOverride;
 }

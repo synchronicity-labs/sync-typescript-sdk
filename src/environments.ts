@@ -5,6 +5,8 @@
 export const SyncEnvironment = {
     Default: "https://api.sync.so",
     Dev: "https://dev-api.sync.so",
+    Local: "http://localhost:3001",
 } as const;
 
-export type SyncEnvironment = typeof SyncEnvironment.Default | typeof SyncEnvironment.Dev;
+export type SyncEnvironment =
+    typeof SyncEnvironment.Default | typeof SyncEnvironment.Dev | typeof SyncEnvironment.Local;

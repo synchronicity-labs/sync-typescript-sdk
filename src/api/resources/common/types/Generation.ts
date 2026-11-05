@@ -9,8 +9,8 @@ export interface Generation {
     createdAt: string;
     /** The error message if the generation failed. */
     error?: string;
-    /** The error code if the generation failed. */
-    error_code?: string;
+    /** Stable, machine-readable error code if the generation failed (e.g. generation_input_video_inaccessible). The full catalog of codes, messages and suggested fixes is served unauthenticated at GET /v2/errors. */
+    errorCode?: string;
     id: Sync.GenerationId;
     /** An array of input objects used for generation. */
     input: Sync.Input[];
@@ -22,12 +22,22 @@ export interface Generation {
     outputDuration?: number;
     /** The URL of the output media. */
     outputUrl?: string;
+    /** The sanitized filename applied to the output media. Characters outside letters, numbers, dashes and underscores are stripped and spaces become underscores, so this can differ from the value submitted. Null when no name was provided. */
+    outputFileName?: string;
     /** The segments of the generation. */
     segments?: Sync.GenerationSegment[];
     /** The URL of the segment output media. */
     segmentOutputUrl?: string;
+    /** The URL of the audio synthesized from a text (TTS) input. Only present for generations created with a TTS text input; reuse it as an audio input to keep the same take across generations. */
+    synthesizedAudioUrl?: string;
     /** The status of the generation. */
     status: Sync.GenerationStatus;
     /** The URL to the webhook endpoint. */
     webhookUrl?: string;
+    /** The id of the project this generation is attached to, or null when it belongs to no project. Set via the projectId field on the create request. */
+    projectId?: Sync.ProjectId;
+    /** A completion-time estimate captured once when the generation is accepted. Populated only for generations created in sync's own apps, such as Sync Studio; the field is absent for generations created through the API today. */
+    generationEstimate?: Sync.GenerationEstimate;
+    /** Generation progress from 0 to 100. Only present on Get Generation with `include=progress`. */
+    progress_percent?: number;
 }

@@ -7,4 +7,4 @@ import * as Sync from "../../../index";
 /**
  * An input item for a generation.
  */
-export type Input = Sync.Video | Sync.Audio | Sync.Tts;
+export type Input = Sync.Video | Sync.Image | Sync.Audio | Sync.Tts;

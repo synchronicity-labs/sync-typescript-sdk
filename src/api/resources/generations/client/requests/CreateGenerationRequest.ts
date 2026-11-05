@@ -12,8 +12,20 @@ import * as Sync from "../../../../index";
  */
 export interface CreateGenerationRequest {
     model: Sync.Model;
-    /** Array of input objects. Can be used to provide urls for larger files. Each input should either have a file or a url. Audio input items can be provided as either: recorded/captured audio url or a text-to-speech input with tts provider configuration. */
+    /** Array of input objects, encoded as a JSON string in multipart requests. Can be used to provide URLs or assetIds for larger files. Each input should either have a file, a url, or an assetId. Audio input items can be provided as either recorded/captured audio URL or a text-to-speech input with TTS provider configuration. */
     input?: Sync.Input[];
+    /** Optional generation options, encoded as a JSON string in multipart requests. */
     options?: Sync.GenerationOptions;
+    /** Optional segment definitions, encoded as a JSON string in multipart requests. */
+    segments?: Sync.GenerationSegment[];
+    /** Optional audio input that plays over the whole finished output, encoded as a JSON string in multipart requests, for example `{"refId":"dub"}`. Use with segments. The refId must name an audio input sent by url or assetId: an uploaded audio file has no refId. */
+    outputAudio?: Sync.OutputAudio;
+    /** Optional dubbing parameters, encoded as a JSON string in multipart requests. */
+    dubParams?: Sync.DubDto;
     webhookUrl?: string;
+    outputFileName?: string;
+    /** Optional project id to attach the generation to. */
+    projectId?: Sync.ProjectId;
+    /** Optional reference to a completed dialogue edit (its id from POST /v2/dialogue-edits) to render its preview into a video, encoded as a JSON string in multipart requests. Send one video input from the same source and no audio, segments or dubParams. */
+    dialogueEdit?: Sync.DialogueEditReference;
 }

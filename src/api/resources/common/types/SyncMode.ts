@@ -16,7 +16,7 @@ export type SyncMode =
      * When audio duration > video duration, cut off audio to match video duration. Otherwise crop video to match audio duration. */
     | "cut_off"
     /**
-     * When video duration > audio duration, add silence to audio to match video duration. Otherwise crop video to match audio duration. */
+     * When video duration > audio duration, add silence to audio to match video duration. When audio duration > video duration, preserve the full audio duration. */
     | "silence"
     /**
      * Slowdown or speed up video to match audio duration exactly. This maintains the full content of both video and audio by adjusting playback speed. */

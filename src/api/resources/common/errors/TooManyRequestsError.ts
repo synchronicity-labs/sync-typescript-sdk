@@ -7,7 +7,7 @@ import * as Sync from "../../../index";
 import * as core from "../../../../core";
 
 export class TooManyRequestsError extends errors.SyncError {
-    constructor(body: Sync.GenerationError, rawResponse?: core.RawResponse) {
+    constructor(body: Sync.BatchConcurrencyError, rawResponse?: core.RawResponse) {
         super({
             message: "TooManyRequestsError",
             statusCode: 429,

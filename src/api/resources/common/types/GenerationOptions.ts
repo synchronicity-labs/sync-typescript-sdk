@@ -5,16 +5,34 @@
 import * as Sync from "../../../index";
 
 export interface GenerationOptions {
-    /** Defines how to handle duration mismatches between video and audio inputs. See the [Media Content Tips](/compatibility-and-tips/media-content-tips#sync-mode-options) guide for a brief overview,  or the SyncMode enum below for detailed explanations of each option. */
+    /** Defines how to handle duration mismatches between video and audio inputs. Ignored for image inputs (images have no intrinsic duration). See the [Sync Mode](/developer-guides/sync-mode) guide for the full behavior matrix. */
     sync_mode?: Sync.SyncMode;
     /** edit region for the model. only works with react-1. defaults to face, which affects lipsync + emotions in the face region. Available options are lips/face/head. When head is selected, model generates natural talking head movements along with emotions + lipsync. */
     model_mode?: Sync.ModelMode;
-    /** emotion prompt for the generation. only works for react-1 model. Only single word emotions are supported at the moment. */
-    prompt?: Sync.Emotion;
+    /** Prompt for the generation. React-1 accepts emotion prompts; the appearance model accepts a free-form appearance edit instruction. */
+    prompt?: string;
+    /** Reference image URLs for appearance editing generations. */
+    prompt_image_uris?: string[];
+    /** Prompt for image-to-video generation. */
+    i2v_prompt?: string;
     /** option to control how expressive lipsync can be. 0 -> least expressive, 1 -> most expressive. default:0.5 */
     temperature?: number;
-    /** Active speaker detection configuration. When enabled, automatically detects and applies lipsync only to the active speaker in videos with multiple people. */
+    /** Active speaker detection configuration. When enabled, automatically detects and applies lipsync only to the active speaker in videos with multiple people. Not supported for image inputs. */
     active_speaker_detection?: Sync.ActiveSpeaker;
     /** Whether to detect occlusion during generation, slows down generation speed. */
     occlusion_detection_enabled?: boolean;
+    /** URL for precomputed face bounding boxes. */
+    face_boxes_url?: string;
+    /** Whether to analyze and correct frames with artifacts, occlusions, or extreme poses during generation; slows down generation. Supported on lipsync-2-pro; sync-3 has it built in. See [lipsync models](/models/lipsync). */
+    reasoning_enabled?: boolean;
+    /** Whether to enable the refinement pass for the generation. */
+    refinement_enabled?: boolean;
+    /** Controls how generated frames blend into the source media. */
+    blending_mode?: Sync.BlendingMode;
+    /** Deprecated output container setting; defaults to mp4. */
+    output_format?: Sync.OutputFormat;
+    /** Deprecated output frame-rate setting. */
+    fps?: number;
+    /** Deprecated output resolution setting, as exactly [width, height]. Each value must be finite and between 180 and 4096 inclusive. Invalid values are discarded and the option is treated as omitted. */
+    output_resolution?: number[];
 }

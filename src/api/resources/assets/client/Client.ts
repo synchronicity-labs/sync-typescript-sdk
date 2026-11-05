@@ -14,7 +14,7 @@ export declare namespace Assets {
         environment?: core.Supplier<environments.SyncEnvironment | string>;
         /** Specify a custom URL to connect the client to. */
         baseUrl?: core.Supplier<string>;
-        apiKey?: core.Supplier<string>;
+        apiKey?: core.Supplier<string | undefined>;
         fetcher?: core.FetchFunction;
     }
 
@@ -96,8 +96,8 @@ export class Assets {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.3.0",
-                "User-Agent": "@sync.so/sdk/0.3.0",
+                "X-Fern-SDK-Version": "0.4.0",
+                "User-Agent": "@sync.so/sdk/0.4.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -184,8 +184,8 @@ export class Assets {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.3.0",
-                "User-Agent": "@sync.so/sdk/0.3.0",
+                "X-Fern-SDK-Version": "0.4.0",
+                "User-Agent": "@sync.so/sdk/0.4.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -233,6 +233,422 @@ export class Assets {
                 });
             case "timeout":
                 throw new errors.SyncTimeoutError("Timeout exceeded when calling GET /v2/assets/{id}.");
+            case "unknown":
+                throw new errors.SyncError({
+                    message: _response.error.errorMessage,
+                    rawResponse: _response.rawResponse,
+                });
+        }
+    }
+
+    /**
+     * Request a presigned URL to upload a local file. PUT the file bytes to the returned uploadUrl with the same Content-Type, then register the file as an asset via POST /v2/assets using the returned url. Single uploads are capped at 5GB.
+     *
+     * @param {Sync.CreateAssetUploadRequest} request
+     * @param {Assets.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link Sync.BadRequestError}
+     * @throws {@link Sync.UnauthorizedError}
+     * @throws {@link Sync.UnprocessableEntityError}
+     * @throws {@link Sync.InternalServerError}
+     *
+     * @example
+     *     await client.assets.createUpload({
+     *         fileName: "my-video.mp4",
+     *         contentType: "video/mp4",
+     *         size: 10485760
+     *     })
+     */
+    public createUpload(
+        request: Sync.CreateAssetUploadRequest,
+        requestOptions?: Assets.RequestOptions,
+    ): core.HttpResponsePromise<Sync.AssetUploadResponse> {
+        return core.HttpResponsePromise.fromPromise(this.__createUpload(request, requestOptions));
+    }
+
+    private async __createUpload(
+        request: Sync.CreateAssetUploadRequest,
+        requestOptions?: Assets.RequestOptions,
+    ): Promise<core.WithRawResponse<Sync.AssetUploadResponse>> {
+        const _response = await (this._options.fetcher ?? core.fetcher)({
+            url: urlJoin(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.SyncEnvironment.Default,
+                "/v2/assets/upload",
+            ),
+            method: "POST",
+            headers: {
+                "X-Fern-Language": "JavaScript",
+                "X-Fern-SDK-Name": "@sync.so/sdk",
+                "X-Fern-SDK-Version": "0.4.0",
+                "User-Agent": "@sync.so/sdk/0.4.0",
+                "X-Fern-Runtime": core.RUNTIME.type,
+                "X-Fern-Runtime-Version": core.RUNTIME.version,
+                ...(await this._getCustomAuthorizationHeaders()),
+                ...requestOptions?.headers,
+            },
+            contentType: "application/json",
+            requestType: "json",
+            body: request,
+            timeoutMs: requestOptions?.timeoutInSeconds != null ? requestOptions.timeoutInSeconds * 1000 : 60000,
+            maxRetries: requestOptions?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+        });
+        if (_response.ok) {
+            return { data: _response.body as Sync.AssetUploadResponse, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 400:
+                    throw new Sync.BadRequestError(_response.error.body as Sync.GenerationError, _response.rawResponse);
+                case 401:
+                    throw new Sync.UnauthorizedError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 422:
+                    throw new Sync.UnprocessableEntityError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 500:
+                    throw new Sync.InternalServerError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                default:
+                    throw new errors.SyncError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        switch (_response.error.reason) {
+            case "non-json":
+                throw new errors.SyncError({
+                    statusCode: _response.error.statusCode,
+                    body: _response.error.rawBody,
+                    rawResponse: _response.rawResponse,
+                });
+            case "timeout":
+                throw new errors.SyncTimeoutError("Timeout exceeded when calling POST /v2/assets/upload.");
+            case "unknown":
+                throw new errors.SyncError({
+                    message: _response.error.errorMessage,
+                    rawResponse: _response.rawResponse,
+                });
+        }
+    }
+
+    /**
+     * Register a media URL as a reusable asset and get back its id. Use the id in generation inputs (input[].assetId) or as a voice clone sample. To upload a local file, first request a presigned URL via POST /v2/assets/upload, PUT the file there, then register the returned url here. Registration verifies the upload happened and enforces plan limits on the actual file size.
+     *
+     * projectId is optional. When provided it must reference a project in your organization — a stale or foreign id is rejected with a 422 and errorCode project_not_found; omit the field if you don't need the asset attached to a project.
+     *
+     * @param {Sync.CreateAssetRequest} request
+     * @param {Assets.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link Sync.BadRequestError}
+     * @throws {@link Sync.UnauthorizedError}
+     * @throws {@link Sync.UnprocessableEntityError}
+     * @throws {@link Sync.InternalServerError}
+     *
+     * @example
+     *     await client.assets.create({
+     *         url: "https://assets.sync.so/org-123/my-video.mp4",
+     *         type: "VIDEO",
+     *         name: "my-video.mp4"
+     *     })
+     */
+    public create(
+        request: Sync.CreateAssetRequest,
+        requestOptions?: Assets.RequestOptions,
+    ): core.HttpResponsePromise<Sync.Asset> {
+        return core.HttpResponsePromise.fromPromise(this.__create(request, requestOptions));
+    }
+
+    private async __create(
+        request: Sync.CreateAssetRequest,
+        requestOptions?: Assets.RequestOptions,
+    ): Promise<core.WithRawResponse<Sync.Asset>> {
+        const _response = await (this._options.fetcher ?? core.fetcher)({
+            url: urlJoin(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.SyncEnvironment.Default,
+                "/v2/assets",
+            ),
+            method: "POST",
+            headers: {
+                "X-Fern-Language": "JavaScript",
+                "X-Fern-SDK-Name": "@sync.so/sdk",
+                "X-Fern-SDK-Version": "0.4.0",
+                "User-Agent": "@sync.so/sdk/0.4.0",
+                "X-Fern-Runtime": core.RUNTIME.type,
+                "X-Fern-Runtime-Version": core.RUNTIME.version,
+                ...(await this._getCustomAuthorizationHeaders()),
+                ...requestOptions?.headers,
+            },
+            contentType: "application/json",
+            requestType: "json",
+            body: request,
+            timeoutMs: requestOptions?.timeoutInSeconds != null ? requestOptions.timeoutInSeconds * 1000 : 60000,
+            maxRetries: requestOptions?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+        });
+        if (_response.ok) {
+            return { data: _response.body as Sync.Asset, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 400:
+                    throw new Sync.BadRequestError(_response.error.body as Sync.GenerationError, _response.rawResponse);
+                case 401:
+                    throw new Sync.UnauthorizedError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 422:
+                    throw new Sync.UnprocessableEntityError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 500:
+                    throw new Sync.InternalServerError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                default:
+                    throw new errors.SyncError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        switch (_response.error.reason) {
+            case "non-json":
+                throw new errors.SyncError({
+                    statusCode: _response.error.statusCode,
+                    body: _response.error.rawBody,
+                    rawResponse: _response.rawResponse,
+                });
+            case "timeout":
+                throw new errors.SyncTimeoutError("Timeout exceeded when calling POST /v2/assets.");
+            case "unknown":
+                throw new errors.SyncError({
+                    message: _response.error.errorMessage,
+                    rawResponse: _response.rawResponse,
+                });
+        }
+    }
+
+    /**
+     * Update an asset's name or visibility. With API-key auth the asset must be owned by the key owner; organization-shared assets can only be updated from an admin/owner session. An asset you can view but not edit returns a 403 with errorCode asset_forbidden; an unknown id returns a 404 with errorCode asset_not_found.
+     *
+     * @param {Sync.AssetId} id
+     * @param {Sync.UpdateAssetRequest} request
+     * @param {Assets.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link Sync.UnauthorizedError}
+     * @throws {@link Sync.ForbiddenError}
+     * @throws {@link Sync.NotFoundError}
+     * @throws {@link Sync.UnprocessableEntityError}
+     * @throws {@link Sync.InternalServerError}
+     *
+     * @example
+     *     await client.assets.update("550e8400-e29b-41d4-a716-446655440000", {
+     *         name: "Renamed asset"
+     *     })
+     */
+    public update(
+        id: Sync.AssetId,
+        request: Sync.UpdateAssetRequest,
+        requestOptions?: Assets.RequestOptions,
+    ): core.HttpResponsePromise<Sync.Asset> {
+        return core.HttpResponsePromise.fromPromise(this.__update(id, request, requestOptions));
+    }
+
+    private async __update(
+        id: Sync.AssetId,
+        request: Sync.UpdateAssetRequest,
+        requestOptions?: Assets.RequestOptions,
+    ): Promise<core.WithRawResponse<Sync.Asset>> {
+        const _response = await (this._options.fetcher ?? core.fetcher)({
+            url: urlJoin(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.SyncEnvironment.Default,
+                `/v2/assets/${encodeURIComponent(id)}`,
+            ),
+            method: "PATCH",
+            headers: {
+                "X-Fern-Language": "JavaScript",
+                "X-Fern-SDK-Name": "@sync.so/sdk",
+                "X-Fern-SDK-Version": "0.4.0",
+                "User-Agent": "@sync.so/sdk/0.4.0",
+                "X-Fern-Runtime": core.RUNTIME.type,
+                "X-Fern-Runtime-Version": core.RUNTIME.version,
+                ...(await this._getCustomAuthorizationHeaders()),
+                ...requestOptions?.headers,
+            },
+            contentType: "application/json",
+            requestType: "json",
+            body: request,
+            timeoutMs: requestOptions?.timeoutInSeconds != null ? requestOptions.timeoutInSeconds * 1000 : 60000,
+            maxRetries: requestOptions?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+        });
+        if (_response.ok) {
+            return { data: _response.body as Sync.Asset, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 401:
+                    throw new Sync.UnauthorizedError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 403:
+                    throw new Sync.ForbiddenError(_response.error.body as Sync.GenerationError, _response.rawResponse);
+                case 404:
+                    throw new Sync.NotFoundError(_response.error.body as Sync.GenerationError, _response.rawResponse);
+                case 422:
+                    throw new Sync.UnprocessableEntityError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 500:
+                    throw new Sync.InternalServerError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                default:
+                    throw new errors.SyncError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        switch (_response.error.reason) {
+            case "non-json":
+                throw new errors.SyncError({
+                    statusCode: _response.error.statusCode,
+                    body: _response.error.rawBody,
+                    rawResponse: _response.rawResponse,
+                });
+            case "timeout":
+                throw new errors.SyncTimeoutError("Timeout exceeded when calling PATCH /v2/assets/{id}.");
+            case "unknown":
+                throw new errors.SyncError({
+                    message: _response.error.errorMessage,
+                    rawResponse: _response.rawResponse,
+                });
+        }
+    }
+
+    /**
+     * Delete an asset. With API-key auth the asset must be owned by the key owner; organization-shared assets can only be deleted from an admin/owner session. An asset you can view but not delete returns a 403 with errorCode asset_forbidden; an unknown id returns a 404 with errorCode asset_not_found.
+     *
+     * @param {Sync.AssetId} id
+     * @param {Assets.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link Sync.UnauthorizedError}
+     * @throws {@link Sync.ForbiddenError}
+     * @throws {@link Sync.NotFoundError}
+     * @throws {@link Sync.UnprocessableEntityError}
+     * @throws {@link Sync.InternalServerError}
+     *
+     * @example
+     *     await client.assets.delete("550e8400-e29b-41d4-a716-446655440000")
+     */
+    public delete(
+        id: Sync.AssetId,
+        requestOptions?: Assets.RequestOptions,
+    ): core.HttpResponsePromise<Sync.DeleteAssetResponse> {
+        return core.HttpResponsePromise.fromPromise(this.__delete(id, requestOptions));
+    }
+
+    private async __delete(
+        id: Sync.AssetId,
+        requestOptions?: Assets.RequestOptions,
+    ): Promise<core.WithRawResponse<Sync.DeleteAssetResponse>> {
+        const _response = await (this._options.fetcher ?? core.fetcher)({
+            url: urlJoin(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.SyncEnvironment.Default,
+                `/v2/assets/${encodeURIComponent(id)}`,
+            ),
+            method: "DELETE",
+            headers: {
+                "X-Fern-Language": "JavaScript",
+                "X-Fern-SDK-Name": "@sync.so/sdk",
+                "X-Fern-SDK-Version": "0.4.0",
+                "User-Agent": "@sync.so/sdk/0.4.0",
+                "X-Fern-Runtime": core.RUNTIME.type,
+                "X-Fern-Runtime-Version": core.RUNTIME.version,
+                ...(await this._getCustomAuthorizationHeaders()),
+                ...requestOptions?.headers,
+            },
+            contentType: "application/json",
+            requestType: "json",
+            timeoutMs: requestOptions?.timeoutInSeconds != null ? requestOptions.timeoutInSeconds * 1000 : 60000,
+            maxRetries: requestOptions?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+        });
+        if (_response.ok) {
+            return { data: _response.body as Sync.DeleteAssetResponse, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 401:
+                    throw new Sync.UnauthorizedError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 403:
+                    throw new Sync.ForbiddenError(_response.error.body as Sync.GenerationError, _response.rawResponse);
+                case 404:
+                    throw new Sync.NotFoundError(_response.error.body as Sync.GenerationError, _response.rawResponse);
+                case 422:
+                    throw new Sync.UnprocessableEntityError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 500:
+                    throw new Sync.InternalServerError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                default:
+                    throw new errors.SyncError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        switch (_response.error.reason) {
+            case "non-json":
+                throw new errors.SyncError({
+                    statusCode: _response.error.statusCode,
+                    body: _response.error.rawBody,
+                    rawResponse: _response.rawResponse,
+                });
+            case "timeout":
+                throw new errors.SyncTimeoutError("Timeout exceeded when calling DELETE /v2/assets/{id}.");
             case "unknown":
                 throw new errors.SyncError({
                     message: _response.error.errorMessage,

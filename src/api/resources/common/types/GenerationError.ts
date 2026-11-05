@@ -9,4 +9,20 @@ export interface GenerationError {
     message: Sync.GenerationErrorMessage;
     /** The type of error that occurred. */
     statusCode: number;
+    /** Stable, machine-readable error code (e.g. project_not_found, voice_not_found, concurrency_limit_reached). Branch your error handling on this, not on the message text. The full catalog of codes with messages and suggested fixes is served unauthenticated at GET /v2/errors. */
+    errorCode?: string;
+    /** A suggested fix an agent can act on. */
+    suggestion?: string;
+    /** The request field the error refers to, when the failure is tied to a specific field (e.g. projectId, voiceId, input[].assetId). */
+    field?: string;
+    /** Link to the documentation page for the failing operation. */
+    docsUrl?: string;
+    /** Present on unexpected 500 responses. Include it when contacting support so the failing request can be located directly. */
+    requestId?: string;
+    /** Original generation ID when available for an uncertain keyed submission or a DUPLICATE_SUBMISSION. Poll this ID; do not create another action to bypass IDEMPOTENCY_OUTCOME_UNKNOWN. */
+    generationId?: Sync.GenerationId;
+    /** For dialogue_edit_removal_too_large: the section to change, when it can be identified. Create a new dialogue edit preview before submitting again. */
+    dialogueEditSection?: Sync.DialogueEditRetimeFailureSection;
+    /** For batch creation, on dialogue edit refusals only: the 1-based line of the refused record, counting non-empty JSONL lines. With a `rows` body, line N is `rows[N-1]`. Other record errors name the line only in `message`. */
+    lineNumber?: number;
 }

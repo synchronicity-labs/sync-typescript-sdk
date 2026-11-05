@@ -16,7 +16,7 @@ export declare namespace Generations {
         environment?: core.Supplier<environments.SyncEnvironment | string>;
         /** Specify a custom URL to connect the client to. */
         baseUrl?: core.Supplier<string>;
-        apiKey?: core.Supplier<string>;
+        apiKey?: core.Supplier<string | undefined>;
         fetcher?: core.FetchFunction;
     }
 
@@ -36,12 +36,32 @@ export class Generations {
     constructor(protected readonly _options: Generations.Options = {}) {}
 
     /**
-     * @param {Sync.CreateGenerationDto} request
+     * Create a lip sync generation with `application/json` — provide each input by `url` or by `assetId` from an uploaded asset. For reusable or large local files, upload them first with POST /v2/assets/upload and pass the returned `assetId`; see [Asset Uploads](/developer-guides/asset-uploads). Use the multipart "Create Generation with Files" form only when uploading direct audio, video, or image file fields; it has a 5 GiB per-file application parser limit, subject to your plan and any lower proxy limits. Nested fields such as input, options, segments, outputAudio, dubParams, and dialogueEdit must be JSON strings in multipart requests. If a `text` input requires speech synthesis and the ElevenLabs provider is temporarily unavailable, the request returns errorCode elevenlabs_service_unavailable: 504 for provider timeouts and 503 for other provider outages for unkeyed requests. Keyed uncertain outcomes return 503 IDEMPOTENCY_OUTCOME_UNKNOWN instead. An API-key request that passes dialogueEdit is refused with errorCode dialogue_edit_retime_required (422) when the organization's rollout lacks segment lipsync and section expansion. A dialogueEdit that removes more speech than the surrounding footage can absorb returns errorCode dialogue_edit_removal_too_large (422). When the failing section can be identified, `dialogueEditSection` on the error names it; change it and create a new preview before submitting again. Retrying the same preview fails again. Send the optional Idempotency-Key header on the first request and reuse it with the same payload on retries. An accepted replay returns 200 with the original generation's current state and Idempotency-Replayed: true. A retry after that generation ended FAILED or REJECTED starts a new generation instead (201). An API-key request without the header that is identical to one your organization sent in the last 60 seconds returns 409 DUPLICATE_SUBMISSION with the original generationId; send a unique Idempotency-Key with each generation you intend. See [Idempotent Requests](/api-reference/guides/idempotency) for key validation, conflicts, retention, duplicates, and uncertain-outcome recovery.
+     *
+     * @param {Sync.CreateGenerationJsonRequest} request
      * @param {Generations.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link Sync.BadRequestError}
      * @throws {@link Sync.UnauthorizedError}
+     * @throws {@link Sync.UnprocessableEntityError}
+     * @throws {@link Sync.ConflictError}
+     * @throws {@link Sync.GenerationDeletedError}
+     * @throws {@link Sync.GenerationTooManyRequestsError}
+     * @throws {@link Sync.ServiceUnavailableError}
+     * @throws {@link Sync.GatewayTimeoutError}
      * @throws {@link Sync.InternalServerError}
+     *
+     * @example
+     *     await client.generations.create({
+     *         input: [{
+     *                 type: "video",
+     *                 url: "https://assets.sync.so/docs/example-video.mp4"
+     *             }, {
+     *                 type: "audio",
+     *                 url: "https://assets.sync.so/docs/example-audio.wav"
+     *             }],
+     *         model: "sync-3"
+     *     })
      *
      * @example
      *     await client.generations.create({
@@ -57,18 +77,32 @@ export class Generations {
      *             sync_mode: "loop"
      *         }
      *     })
+     *
+     * @example
+     *     await client.generations.create({
+     *         input: [{
+     *                 type: "video",
+     *                 url: "https://assets.sync.so/docs/example-video.mp4"
+     *             }],
+     *         model: "lipsync-2",
+     *         dubParams: {
+     *             providerName: "elevenlabs",
+     *             targetLang: "es"
+     *         }
+     *     })
      */
     public create(
-        request: Sync.CreateGenerationDto,
+        request: Sync.CreateGenerationJsonRequest,
         requestOptions?: Generations.RequestOptions,
     ): core.HttpResponsePromise<Sync.Generation> {
         return core.HttpResponsePromise.fromPromise(this.__create(request, requestOptions));
     }
 
     private async __create(
-        request: Sync.CreateGenerationDto,
+        request: Sync.CreateGenerationJsonRequest,
         requestOptions?: Generations.RequestOptions,
     ): Promise<core.WithRawResponse<Sync.Generation>> {
+        const { "Idempotency-Key": idempotencyKey, ..._body } = request;
         const _response = await (this._options.fetcher ?? core.fetcher)({
             url: urlJoin(
                 (await core.Supplier.get(this._options.baseUrl)) ??
@@ -80,16 +114,17 @@ export class Generations {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.3.0",
-                "User-Agent": "@sync.so/sdk/0.3.0",
+                "X-Fern-SDK-Version": "0.4.0",
+                "User-Agent": "@sync.so/sdk/0.4.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
+                "Idempotency-Key": idempotencyKey != null ? idempotencyKey : undefined,
                 ...(await this._getCustomAuthorizationHeaders()),
                 ...requestOptions?.headers,
             },
             contentType: "application/json",
             requestType: "json",
-            body: request,
+            body: _body,
             timeoutMs: requestOptions?.timeoutInSeconds != null ? requestOptions.timeoutInSeconds * 1000 : 60000,
             maxRetries: requestOptions?.maxRetries,
             abortSignal: requestOptions?.abortSignal,
@@ -104,6 +139,33 @@ export class Generations {
                     throw new Sync.BadRequestError(_response.error.body as Sync.GenerationError, _response.rawResponse);
                 case 401:
                     throw new Sync.UnauthorizedError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 422:
+                    throw new Sync.UnprocessableEntityError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 409:
+                    throw new Sync.ConflictError(_response.error.body as Sync.GenerationError, _response.rawResponse);
+                case 410:
+                    throw new Sync.GenerationDeletedError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 429:
+                    throw new Sync.GenerationTooManyRequestsError(
+                        _response.error.body as Sync.GenerationConcurrencyError,
+                        _response.rawResponse,
+                    );
+                case 503:
+                    throw new Sync.ServiceUnavailableError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 504:
+                    throw new Sync.GatewayTimeoutError(
                         _response.error.body as Sync.GenerationError,
                         _response.rawResponse,
                     );
@@ -139,31 +201,45 @@ export class Generations {
     }
 
     /**
+     * The multipart/form-data form of `POST /v2/generate` — the same endpoint as "Create Generation", for uploading local files directly instead of passing URLs. Send each file under a field named for its type (`video`, `image`, `audio`), at most one of each. The application parser allows up to 5 GiB (5 × 1024³ bytes) per file, 3 files, 32 fields, 35 total parts, and 1 MiB per field. A file over the parser limit returns 413 generation_input_validation_failed, and a file over your plan limit returns 422 file_size_exceeds_plan_limit. Proxy limits may be lower; this ceiling does not guarantee a 5 GiB direct transfer. Each file is saved as an asset in your organization and passed to the generation by `assetId`. For large files, upload via POST /v2/assets/upload first and pass the `assetId`, so retries don't resend the file. Nested fields such as `input`, `options`, `segments`, `outputAudio`, `dubParams`, and `dialogueEdit` must be sent as JSON strings in multipart requests. Image inputs are sync-3 only. If a `text` input requires speech synthesis and the ElevenLabs provider is temporarily unavailable, the request returns errorCode elevenlabs_service_unavailable: 504 for provider timeouts and 503 for other provider outages for unkeyed requests. Keyed uncertain outcomes return 503 IDEMPOTENCY_OUTCOME_UNKNOWN instead. An API-key request that passes dialogueEdit is refused with errorCode dialogue_edit_retime_required (422) when the organization's rollout lacks segment lipsync and section expansion. A dialogueEdit that removes more speech than the surrounding footage can absorb returns errorCode dialogue_edit_removal_too_large (422). When the failing section can be identified, `dialogueEditSection` on the error names it; change it and create a new preview before submitting again. Retrying the same preview fails again. Send the optional Idempotency-Key header on the first request and reuse it with the same payload on retries. An accepted replay returns 200 with the original generation's current state and Idempotency-Replayed: true. A retry after that generation ended FAILED or REJECTED starts a new generation instead (201). An API-key request without the header that is identical to one your organization sent in the last 60 seconds returns 409 DUPLICATE_SUBMISSION with the original generationId; send a unique Idempotency-Key with each generation you intend. See [Idempotent Requests](/api-reference/guides/idempotency) for key validation, conflicts, retention, duplicates, and uncertain-outcome recovery.
+     *
      * @param {File | fs.ReadStream | Blob | undefined} video
+     * @param {File | fs.ReadStream | Blob | undefined} image
      * @param {File | fs.ReadStream | Blob | undefined} audio
      * @param {Sync.CreateGenerationRequest} request
      * @param {Generations.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link Sync.BadRequestError}
      * @throws {@link Sync.UnauthorizedError}
+     * @throws {@link Sync.PayloadTooLargeError}
+     * @throws {@link Sync.UnprocessableEntityError}
+     * @throws {@link Sync.ConflictError}
+     * @throws {@link Sync.GenerationDeletedError}
+     * @throws {@link Sync.GenerationTooManyRequestsError}
+     * @throws {@link Sync.ServiceUnavailableError}
+     * @throws {@link Sync.GatewayTimeoutError}
      * @throws {@link Sync.InternalServerError}
      *
      * @example
-     *     await client.generations.createWithFiles(fs.createReadStream("/path/to/your/file"), fs.createReadStream("/path/to/your/file"), {
+     *     await client.generations.createWithFiles(fs.createReadStream("/path/to/your/file"), fs.createReadStream("/path/to/your/file"), fs.createReadStream("/path/to/your/file"), {
      *         model: "lipsync-2"
      *     })
      */
     public createWithFiles(
         video: File | fs.ReadStream | Blob | undefined,
+        image: File | fs.ReadStream | Blob | undefined,
         audio: File | fs.ReadStream | Blob | undefined,
         request: Sync.CreateGenerationRequest,
         requestOptions?: Generations.RequestOptions,
     ): core.HttpResponsePromise<Sync.Generation> {
-        return core.HttpResponsePromise.fromPromise(this.__createWithFiles(video, audio, request, requestOptions));
+        return core.HttpResponsePromise.fromPromise(
+            this.__createWithFiles(video, image, audio, request, requestOptions),
+        );
     }
 
     private async __createWithFiles(
         video: File | fs.ReadStream | Blob | undefined,
+        image: File | fs.ReadStream | Blob | undefined,
         audio: File | fs.ReadStream | Blob | undefined,
         request: Sync.CreateGenerationRequest,
         requestOptions?: Generations.RequestOptions,
@@ -171,6 +247,10 @@ export class Generations {
         const _request = await core.newFormData();
         if (video != null) {
             await _request.appendFile("video", video);
+        }
+
+        if (image != null) {
+            await _request.appendFile("image", image);
         }
 
         if (audio != null) {
@@ -188,8 +268,34 @@ export class Generations {
             _request.append("options", toJson(request.options));
         }
 
+        if (request.segments != null) {
+            for (const _item of request.segments) {
+                _request.append("segments", toJson(_item));
+            }
+        }
+
+        if (request.outputAudio != null) {
+            _request.append("outputAudio", toJson(request.outputAudio));
+        }
+
+        if (request.dubParams != null) {
+            _request.append("dubParams", toJson(request.dubParams));
+        }
+
         if (request.webhookUrl != null) {
             _request.append("webhookUrl", request.webhookUrl);
+        }
+
+        if (request.outputFileName != null) {
+            _request.append("outputFileName", request.outputFileName);
+        }
+
+        if (request.projectId != null) {
+            _request.append("projectId", request.projectId);
+        }
+
+        if (request.dialogueEdit != null) {
+            _request.append("dialogueEdit", toJson(request.dialogueEdit));
         }
 
         const _maybeEncodedRequest = await _request.getRequest();
@@ -204,8 +310,8 @@ export class Generations {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.3.0",
-                "User-Agent": "@sync.so/sdk/0.3.0",
+                "X-Fern-SDK-Version": "0.4.0",
+                "User-Agent": "@sync.so/sdk/0.4.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -232,6 +338,38 @@ export class Generations {
                         _response.error.body as Sync.GenerationError,
                         _response.rawResponse,
                     );
+                case 413:
+                    throw new Sync.PayloadTooLargeError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 422:
+                    throw new Sync.UnprocessableEntityError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 409:
+                    throw new Sync.ConflictError(_response.error.body as Sync.GenerationError, _response.rawResponse);
+                case 410:
+                    throw new Sync.GenerationDeletedError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 429:
+                    throw new Sync.GenerationTooManyRequestsError(
+                        _response.error.body as Sync.GenerationConcurrencyError,
+                        _response.rawResponse,
+                    );
+                case 503:
+                    throw new Sync.ServiceUnavailableError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 504:
+                    throw new Sync.GatewayTimeoutError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
                 case 500:
                     throw new Sync.InternalServerError(
                         _response.error.body as Sync.GenerationError,
@@ -264,7 +402,10 @@ export class Generations {
     }
 
     /**
+     * Retrieve the current generation state. This /v2/generate/{id} route supports the wait, timeout and include options below.
+     *
      * @param {Sync.GenerationId} id
+     * @param {Sync.GetGenerationRequest} request
      * @param {Generations.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link Sync.UnauthorizedError}
@@ -276,15 +417,31 @@ export class Generations {
      */
     public get(
         id: Sync.GenerationId,
+        request: Sync.GetGenerationRequest = {},
         requestOptions?: Generations.RequestOptions,
     ): core.HttpResponsePromise<Sync.Generation> {
-        return core.HttpResponsePromise.fromPromise(this.__get(id, requestOptions));
+        return core.HttpResponsePromise.fromPromise(this.__get(id, request, requestOptions));
     }
 
     private async __get(
         id: Sync.GenerationId,
+        request: Sync.GetGenerationRequest = {},
         requestOptions?: Generations.RequestOptions,
     ): Promise<core.WithRawResponse<Sync.Generation>> {
+        const { wait, timeout, include } = request;
+        const _queryParams: Record<string, string | string[] | object | object[] | null> = {};
+        if (wait != null) {
+            _queryParams["wait"] = wait.toString();
+        }
+
+        if (timeout != null) {
+            _queryParams["timeout"] = timeout.toString();
+        }
+
+        if (include != null) {
+            _queryParams["include"] = include;
+        }
+
         const _response = await (this._options.fetcher ?? core.fetcher)({
             url: urlJoin(
                 (await core.Supplier.get(this._options.baseUrl)) ??
@@ -296,14 +453,15 @@ export class Generations {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.3.0",
-                "User-Agent": "@sync.so/sdk/0.3.0",
+                "X-Fern-SDK-Version": "0.4.0",
+                "User-Agent": "@sync.so/sdk/0.4.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
                 ...requestOptions?.headers,
             },
             contentType: "application/json",
+            queryParameters: _queryParams,
             requestType: "json",
             timeoutMs: requestOptions?.timeoutInSeconds != null ? requestOptions.timeoutInSeconds * 1000 : 60000,
             maxRetries: requestOptions?.maxRetries,
@@ -354,9 +512,176 @@ export class Generations {
     }
 
     /**
+     * Obtain the available full output of a completed generation in your
+     * organization. Authenticate with `x-api-key`; no Studio project or user
+     * session is required. Any valid API key belonging to the generation's
+     * organization can request the URL.
+     *
+     * The successful response is an **unquoted URL in a text/plain body**,
+     * not JSON, a redirect, or the video itself. Fetch that URL separately
+     * without forwarding your API key.
+     *
+     * ```bash
+     * download_url=$(curl --fail-with-body --silent --show-error \
+     *   -H "x-api-key: $SYNC_API_KEY" \
+     *   "https://api.sync.so/v2/generations/$GENERATION_ID/download") &&
+     * curl --fail --location "$download_url" --output output.mov
+     * ```
+     *
+     * The URL resolves an existing output using your organization's current
+     * plan and billing-version eligibility. Free and watermark-required plans
+     * receive the watermarked derivative when present. Entitled plans (such
+     * as v2 Creator and v3 Starter or higher) receive the clean output when
+     * available. Historical outputs can have the watermark burned in, so an
+     * upgrade does not guarantee every old output becomes watermark-free.
+     * Outputs created without a watermark can remain clean after a downgrade.
+     * If no watermarked derivative exists, the resolver retains its existing
+     * fallback to the original output; changing plans does not rewrite files.
+     * This endpoint does not generate a new render or remove burned-in watermarks.
+     *
+     * Signed S3 URLs request seven-day validity, but credential expiry,
+     * revocation, access changes, or file deletion can make them unusable
+     * sooner. Request this endpoint again for a fresh signed URL while the
+     * output is still available. The selected S3 file is checked before
+     * signing; a successful response does not guarantee future availability.
+     * Older URL-only records return their stored URL unchanged, without
+     * checking its availability or extending its original expiration.
+     * These URLs are download credentials: keep them private.
+     *
+     * Errors use the standard JSON error body and stable `errorCode`:
+     *
+     * | Status | Code | Meaning / next step |
+     * | --- | --- | --- |
+     * | 400 | — | Invalid generation UUID. |
+     * | 401 | — | API key missing, invalid, or revoked. |
+     * | 404 | `generation_not_found` | Missing, deleted, or outside your organization. |
+     * | 404 | `generation_output_unavailable` | No eligible output reference or the selected file is missing; contact support. |
+     * | 409 | `generation_not_ready` | Pending or processing; poll Get Generation until COMPLETED. |
+     * | 422 | `generation_not_downloadable` | Failed or rejected; inspect the generation error. |
+     * | 503 | `generation_download_unavailable` | Storage lookup or signing failed; retry with backoff. |
+     *
+     * Authentication also returns 422 for draft organizations. Requesting a
+     * download URL does not create a project, incur a generation charge, or
+     * restore deleted files.
+     *
+     * @param {Sync.GenerationId} id
+     * @param {Sync.GetGenerationDownloadRequest} request
+     * @param {Generations.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link Sync.BadRequestError}
+     * @throws {@link Sync.UnauthorizedError}
+     * @throws {@link Sync.NotFoundError}
+     * @throws {@link Sync.ConflictError}
+     * @throws {@link Sync.UnprocessableEntityError}
+     * @throws {@link Sync.ServiceUnavailableError}
+     *
+     * @example
+     *     await client.generations.download("id")
+     */
+    public download(
+        id: Sync.GenerationId,
+        request: Sync.GetGenerationDownloadRequest = {},
+        requestOptions?: Generations.RequestOptions,
+    ): core.HttpResponsePromise<string> {
+        return core.HttpResponsePromise.fromPromise(this.__download(id, request, requestOptions));
+    }
+
+    private async __download(
+        id: Sync.GenerationId,
+        request: Sync.GetGenerationDownloadRequest = {},
+        requestOptions?: Generations.RequestOptions,
+    ): Promise<core.WithRawResponse<string>> {
+        const { fileName, "x-sync-accelerate": xSyncAccelerate } = request;
+        const _queryParams: Record<string, string | string[] | object | object[] | null> = {};
+        if (fileName != null) {
+            _queryParams["fileName"] = fileName;
+        }
+
+        const _response = await (this._options.fetcher ?? core.fetcher)({
+            url: urlJoin(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.SyncEnvironment.Default,
+                `/v2/generations/${encodeURIComponent(id)}/download`,
+            ),
+            method: "GET",
+            headers: {
+                "X-Fern-Language": "JavaScript",
+                "X-Fern-SDK-Name": "@sync.so/sdk",
+                "X-Fern-SDK-Version": "0.4.0",
+                "User-Agent": "@sync.so/sdk/0.4.0",
+                "X-Fern-Runtime": core.RUNTIME.type,
+                "X-Fern-Runtime-Version": core.RUNTIME.version,
+                "x-sync-accelerate": xSyncAccelerate != null ? xSyncAccelerate : undefined,
+                ...(await this._getCustomAuthorizationHeaders()),
+                ...requestOptions?.headers,
+            },
+            contentType: "application/json",
+            queryParameters: _queryParams,
+            requestType: "json",
+            responseType: "text",
+            timeoutMs: requestOptions?.timeoutInSeconds != null ? requestOptions.timeoutInSeconds * 1000 : 60000,
+            maxRetries: requestOptions?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+        });
+        if (_response.ok) {
+            return { data: _response.body as string, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 400:
+                    throw new Sync.BadRequestError(_response.error.body as Sync.GenerationError, _response.rawResponse);
+                case 401:
+                    throw new Sync.UnauthorizedError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 404:
+                    throw new Sync.NotFoundError(_response.error.body as Sync.GenerationError, _response.rawResponse);
+                case 409:
+                    throw new Sync.ConflictError(_response.error.body as Sync.GenerationError, _response.rawResponse);
+                case 422:
+                    throw new Sync.UnprocessableEntityError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 503:
+                    throw new Sync.ServiceUnavailableError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                default:
+                    throw new errors.SyncError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        switch (_response.error.reason) {
+            case "non-json":
+                throw new errors.SyncError({
+                    statusCode: _response.error.statusCode,
+                    body: _response.error.rawBody,
+                    rawResponse: _response.rawResponse,
+                });
+            case "timeout":
+                throw new errors.SyncTimeoutError("Timeout exceeded when calling GET /v2/generations/{id}/download.");
+            case "unknown":
+                throw new errors.SyncError({
+                    message: _response.error.errorMessage,
+                    rawResponse: _response.rawResponse,
+                });
+        }
+    }
+
+    /**
      * @param {Sync.ListGenerationsRequest} request
      * @param {Generations.RequestOptions} requestOptions - Request-specific configuration.
      *
+     * @throws {@link Sync.BadRequestError}
      * @throws {@link Sync.UnauthorizedError}
      * @throws {@link Sync.InternalServerError}
      *
@@ -374,7 +699,7 @@ export class Generations {
         request: Sync.ListGenerationsRequest = {},
         requestOptions?: Generations.RequestOptions,
     ): Promise<core.WithRawResponse<Sync.Generation[]>> {
-        const { status, ids } = request;
+        const { status, ids, source, projectId, limit, cursor } = request;
         const _queryParams: Record<string, string | string[] | object | object[] | null> = {};
         if (status != null) {
             _queryParams["status"] = toJson(status);
@@ -382,6 +707,22 @@ export class Generations {
 
         if (ids != null) {
             _queryParams["ids"] = toJson(ids);
+        }
+
+        if (source != null) {
+            _queryParams["source"] = toJson(source);
+        }
+
+        if (projectId != null) {
+            _queryParams["projectId"] = projectId;
+        }
+
+        if (limit != null) {
+            _queryParams["limit"] = limit.toString();
+        }
+
+        if (cursor != null) {
+            _queryParams["cursor"] = cursor;
         }
 
         const _response = await (this._options.fetcher ?? core.fetcher)({
@@ -395,8 +736,8 @@ export class Generations {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.3.0",
-                "User-Agent": "@sync.so/sdk/0.3.0",
+                "X-Fern-SDK-Version": "0.4.0",
+                "User-Agent": "@sync.so/sdk/0.4.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -415,6 +756,8 @@ export class Generations {
 
         if (_response.error.reason === "status-code") {
             switch (_response.error.statusCode) {
+                case 400:
+                    throw new Sync.BadRequestError(_response.error.body as Sync.GenerationError, _response.rawResponse);
                 case 401:
                     throw new Sync.UnauthorizedError(
                         _response.error.body as Sync.GenerationError,
@@ -452,51 +795,49 @@ export class Generations {
     }
 
     /**
-     * @param {Sync.CreateGenerationDto} request
+     * Estimate a generation from its model and billable duration in seconds. Supply a finite positive duration and, optionally, a finite positive fps (defaults to 25 for credit-billed organizations and 30 otherwise). Set `workflow` to `translate-and-dub` to include dubbing; the response then carries a `breakdown`. `durationCheck` says whether your account and the model allow the quoted duration. No media is fetched and no generation is created. POST /v2/generate/estimate-cost is an alias of this endpoint. Invalid request fields return 400. If the billing calculation rejects the duration or frame rate, it returns 422 cost_estimate_unavailable without price fields.
+     *
+     * @param {Sync.EstimateCostRequest} request
      * @param {Generations.RequestOptions} requestOptions - Request-specific configuration.
      *
+     * @throws {@link Sync.BadRequestError}
      * @throws {@link Sync.UnauthorizedError}
+     * @throws {@link Sync.UnprocessableEntityError}
      * @throws {@link Sync.InternalServerError}
      *
      * @example
      *     await client.generations.estimateCost({
-     *         input: [{
-     *                 type: "video",
-     *                 url: "https://assets.sync.so/docs/example-video.mp4"
-     *             }, {
-     *                 type: "audio",
-     *                 url: "https://assets.sync.so/docs/example-audio.wav"
-     *             }],
-     *         model: "lipsync-2",
-     *         options: {
-     *             sync_mode: "loop"
-     *         }
+     *         model: "model",
+     *         duration: 1.1,
+     *         fps: undefined,
+     *         workflow: undefined,
+     *         reasoningEnabled: undefined
      *     })
      */
     public estimateCost(
-        request: Sync.CreateGenerationDto,
+        request: Sync.EstimateCostRequest,
         requestOptions?: Generations.RequestOptions,
-    ): core.HttpResponsePromise<Sync.EstimatedGenerationCost[]> {
+    ): core.HttpResponsePromise<Sync.EstimatedGenerationCost> {
         return core.HttpResponsePromise.fromPromise(this.__estimateCost(request, requestOptions));
     }
 
     private async __estimateCost(
-        request: Sync.CreateGenerationDto,
+        request: Sync.EstimateCostRequest,
         requestOptions?: Generations.RequestOptions,
-    ): Promise<core.WithRawResponse<Sync.EstimatedGenerationCost[]>> {
+    ): Promise<core.WithRawResponse<Sync.EstimatedGenerationCost>> {
         const _response = await (this._options.fetcher ?? core.fetcher)({
             url: urlJoin(
                 (await core.Supplier.get(this._options.baseUrl)) ??
                     (await core.Supplier.get(this._options.environment)) ??
                     environments.SyncEnvironment.Default,
-                "/v2/analyze/cost",
+                "/v2/generations/estimate",
             ),
             method: "POST",
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.3.0",
-                "User-Agent": "@sync.so/sdk/0.3.0",
+                "X-Fern-SDK-Version": "0.4.0",
+                "User-Agent": "@sync.so/sdk/0.4.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -510,13 +851,20 @@ export class Generations {
             abortSignal: requestOptions?.abortSignal,
         });
         if (_response.ok) {
-            return { data: _response.body as Sync.EstimatedGenerationCost[], rawResponse: _response.rawResponse };
+            return { data: _response.body as Sync.EstimatedGenerationCost, rawResponse: _response.rawResponse };
         }
 
         if (_response.error.reason === "status-code") {
             switch (_response.error.statusCode) {
+                case 400:
+                    throw new Sync.BadRequestError(_response.error.body as Sync.GenerationError, _response.rawResponse);
                 case 401:
                     throw new Sync.UnauthorizedError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 422:
+                    throw new Sync.UnprocessableEntityError(
                         _response.error.body as Sync.GenerationError,
                         _response.rawResponse,
                     );
@@ -542,7 +890,102 @@ export class Generations {
                     rawResponse: _response.rawResponse,
                 });
             case "timeout":
-                throw new errors.SyncTimeoutError("Timeout exceeded when calling POST /v2/analyze/cost.");
+                throw new errors.SyncTimeoutError("Timeout exceeded when calling POST /v2/generations/estimate.");
+            case "unknown":
+                throw new errors.SyncError({
+                    message: _response.error.errorMessage,
+                    rawResponse: _response.rawResponse,
+                });
+        }
+    }
+
+    /**
+     * Delete a generation. Generations are organization-scoped, so any member — or an API key for the organization — can delete one. Only generations in a terminal state can be deleted; deleting one that is still processing returns 409 (errorCode `generation_not_deletable_while_processing`). Returns the deleted generation in its stored shape (`modelName`, `inputs`, `outputMediaUrl`, `deletedAt`), not the Get Generation shape.
+     *
+     * @param {Sync.GenerationId} id
+     * @param {Generations.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link Sync.UnauthorizedError}
+     * @throws {@link Sync.NotFoundError}
+     * @throws {@link Sync.ConflictError}
+     * @throws {@link Sync.InternalServerError}
+     *
+     * @example
+     *     await client.generations.delete("6533643b-aceb-4c40-967e-d9ba9baac39e")
+     */
+    public delete(
+        id: Sync.GenerationId,
+        requestOptions?: Generations.RequestOptions,
+    ): core.HttpResponsePromise<Sync.ProjectGeneration> {
+        return core.HttpResponsePromise.fromPromise(this.__delete(id, requestOptions));
+    }
+
+    private async __delete(
+        id: Sync.GenerationId,
+        requestOptions?: Generations.RequestOptions,
+    ): Promise<core.WithRawResponse<Sync.ProjectGeneration>> {
+        const _response = await (this._options.fetcher ?? core.fetcher)({
+            url: urlJoin(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.SyncEnvironment.Default,
+                `/v2/generations/${encodeURIComponent(id)}`,
+            ),
+            method: "DELETE",
+            headers: {
+                "X-Fern-Language": "JavaScript",
+                "X-Fern-SDK-Name": "@sync.so/sdk",
+                "X-Fern-SDK-Version": "0.4.0",
+                "User-Agent": "@sync.so/sdk/0.4.0",
+                "X-Fern-Runtime": core.RUNTIME.type,
+                "X-Fern-Runtime-Version": core.RUNTIME.version,
+                ...(await this._getCustomAuthorizationHeaders()),
+                ...requestOptions?.headers,
+            },
+            contentType: "application/json",
+            requestType: "json",
+            timeoutMs: requestOptions?.timeoutInSeconds != null ? requestOptions.timeoutInSeconds * 1000 : 60000,
+            maxRetries: requestOptions?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+        });
+        if (_response.ok) {
+            return { data: _response.body as Sync.ProjectGeneration, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 401:
+                    throw new Sync.UnauthorizedError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 404:
+                    throw new Sync.NotFoundError(_response.error.body as Sync.GenerationError, _response.rawResponse);
+                case 409:
+                    throw new Sync.ConflictError(_response.error.body as Sync.GenerationError, _response.rawResponse);
+                case 500:
+                    throw new Sync.InternalServerError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                default:
+                    throw new errors.SyncError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        switch (_response.error.reason) {
+            case "non-json":
+                throw new errors.SyncError({
+                    statusCode: _response.error.statusCode,
+                    body: _response.error.rawBody,
+                    rawResponse: _response.rawResponse,
+                });
+            case "timeout":
+                throw new errors.SyncTimeoutError("Timeout exceeded when calling DELETE /v2/generations/{id}.");
             case "unknown":
                 throw new errors.SyncError({
                     message: _response.error.errorMessage,

@@ -4,17 +4,26 @@
 
 import * as environments from "./environments";
 import * as core from "./core";
+import { Account } from "./api/resources/account/client/Client";
 import { Assets } from "./api/resources/assets/client/Client";
 import { Batch } from "./api/resources/batch/client/Client";
+import { DialogueEdits } from "./api/resources/dialogueEdits/client/Client";
+import { Errors } from "./api/resources/errors/client/Client";
+import { Feedback } from "./api/resources/feedback/client/Client";
 import { Generations } from "./api/resources/generations/client/Client";
 import { Models } from "./api/resources/models/client/Client";
+import { Organizations } from "./api/resources/organizations/client/Client";
+import { Projects } from "./api/resources/projects/client/Client";
+import { Transcriptions } from "./api/resources/transcriptions/client/Client";
+import { Tts } from "./api/resources/tts/client/Client";
+import { Voices } from "./api/resources/voices/client/Client";
 
 export declare namespace SyncClient {
     export interface Options {
         environment?: core.Supplier<environments.SyncEnvironment | string>;
         /** Specify a custom URL to connect the client to. */
         baseUrl?: core.Supplier<string>;
-        apiKey?: core.Supplier<string>;
+        apiKey?: core.Supplier<string | undefined>;
         fetcher?: core.FetchFunction;
     }
 
@@ -31,12 +40,25 @@ export declare namespace SyncClient {
 }
 
 export class SyncClient {
+    protected _account: Account | undefined;
     protected _assets: Assets | undefined;
     protected _batch: Batch | undefined;
+    protected _dialogueEdits: DialogueEdits | undefined;
+    protected _errors: Errors | undefined;
+    protected _feedback: Feedback | undefined;
     protected _generations: Generations | undefined;
     protected _models: Models | undefined;
+    protected _organizations: Organizations | undefined;
+    protected _projects: Projects | undefined;
+    protected _transcriptions: Transcriptions | undefined;
+    protected _tts: Tts | undefined;
+    protected _voices: Voices | undefined;
 
     constructor(protected readonly _options: SyncClient.Options = {}) {}
+
+    public get account(): Account {
+        return (this._account ??= new Account(this._options));
+    }
 
     public get assets(): Assets {
         return (this._assets ??= new Assets(this._options));
@@ -46,11 +68,43 @@ export class SyncClient {
         return (this._batch ??= new Batch(this._options));
     }
 
+    public get dialogueEdits(): DialogueEdits {
+        return (this._dialogueEdits ??= new DialogueEdits(this._options));
+    }
+
+    public get errors(): Errors {
+        return (this._errors ??= new Errors(this._options));
+    }
+
+    public get feedback(): Feedback {
+        return (this._feedback ??= new Feedback(this._options));
+    }
+
     public get generations(): Generations {
         return (this._generations ??= new Generations(this._options));
     }
 
     public get models(): Models {
         return (this._models ??= new Models(this._options));
+    }
+
+    public get organizations(): Organizations {
+        return (this._organizations ??= new Organizations(this._options));
+    }
+
+    public get projects(): Projects {
+        return (this._projects ??= new Projects(this._options));
+    }
+
+    public get transcriptions(): Transcriptions {
+        return (this._transcriptions ??= new Transcriptions(this._options));
+    }
+
+    public get tts(): Tts {
+        return (this._tts ??= new Tts(this._options));
+    }
+
+    public get voices(): Voices {
+        return (this._voices ??= new Voices(this._options));
     }
 }

@@ -17,4 +17,20 @@ export interface ListGenerationsRequest {
      * Filter generations by ID. Accepts multiple IDs as a comma-separated list.
      */
     ids?: string[];
+    /**
+     * Filter generations by source. Accepts multiple sources as a comma-separated list.
+     */
+    source?: string[];
+    /**
+     * Return only generations in this project. Must be a UUID. A project you can't access returns an empty list.
+     */
+    projectId?: Sync.ProjectId;
+    /**
+     * Maximum number of generations to return (1-100). When set, results are ordered newest first and can be paged with `cursor`.
+     */
+    limit?: number;
+    /**
+     * ID of the last generation on the previous page. Requires `limit`.
+     */
+    cursor?: string;
 }

@@ -5,26 +5,24 @@
 import * as Sync from "../../../index";
 
 export interface GenerationNotification {
-    /** The status of the generation */
-    status: Sync.WebhookStatus;
+    id: Sync.GenerationId;
     /** The date and time the generation was created */
     createdAt: string;
-    id: Sync.GenerationId;
+    /** The status of the generation */
+    status: Sync.WebhookStatus;
+    model: Sync.Model;
     /** The input items for the generation */
     input: Sync.Input[];
-    model: Sync.Model;
-    /** error message if the generation failed */
-    error?: string;
-    /** error code if the generation failed */
-    error_code?: string;
-    /** options used for the generation */
-    options?: Sync.GenerationOptions;
-    /** generated output media duration in seconds */
-    outputDuration?: number;
-    /** url of the generated output media */
-    outputUrl?: string;
-    /** url of the segment output media */
-    segmentOutputUrl?: string;
     /** url of the webhook server */
     webhookUrl?: string;
+    /** options used for the generation */
+    options?: Sync.GenerationOptions;
+    /** url of the generated output media. Null unless the generation completed. */
+    outputUrl: string | null;
+    /** url of the speech synthesized from a text input. Present only for generations that used a text input. */
+    synthesizedAudioUrl?: string;
+    /** Human-readable error message if the generation failed or was rejected, otherwise null. */
+    error: string | null;
+    /** Machine-readable error code if the generation failed or was rejected, otherwise null. See [Error Handling](/developer-guides/error-handling) and GET /v2/errors. */
+    errorCode: string | null;
 }

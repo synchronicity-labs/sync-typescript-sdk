@@ -8,8 +8,8 @@
 export interface SegmentAudioInput {
     /** Reference ID of the audio/text-to-speech input to use for this segment */
     refId: string;
-    /** Optional start time (in seconds) to crop the referenced audio. When specified, end_time must also be provided. */
+    /** Optional start time (in seconds) to crop the referenced audio. When specified, endTime must also be provided, and startTime must be less than or equal to endTime. */
     startTime?: number;
-    /** Optional end time (in seconds) to crop the referenced audio. When specified, start_time must also be provided. */
+    /** Optional end time (in seconds) to crop the referenced audio. When specified, startTime must also be provided, and must be greater than or equal to startTime. */
     endTime?: number;
 }

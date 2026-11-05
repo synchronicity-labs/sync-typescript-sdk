@@ -9,6 +9,8 @@ import * as Sync from "../../../index";
  */
 export interface Video {
     type: "video";
+    /** Optional reference identifier for segment definitions. Use this when a segment needs to refer back to a specific visual input item. */
+    refId?: string;
     /** URL of the video to be used for generation. Either `url` or `assetId` must be provided. */
     url?: string;
     /** ID of a video asset from your media library. Either `url` or `assetId` must be provided. */
