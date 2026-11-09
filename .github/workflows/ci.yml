@@ -1,6 +1,16 @@
 name: ci
 
-on: [push]
+on:
+  push:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing release tag to publish (for example, 0.4.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
 
 jobs:
   compile:
@@ -9,12 +19,16 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag && format('refs/tags/{0}', inputs.tag) || github.ref }}
 
       - name: Set up node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
 
       - name: Compile
-        run: yarn && yarn build
+        run: yarn install --frozen-lockfile && yarn build
 
   test:
     runs-on: ubuntu-latest
@@ -22,36 +36,68 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag && format('refs/tags/{0}', inputs.tag) || github.ref }}
 
       - name: Set up node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
 
-      - name: Compile
-        run: yarn && yarn test    
+      - name: Test
+        run: yarn install --frozen-lockfile && yarn test --runInBand
 
   publish:
     needs: [ compile, test ]
-    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    if: >-
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    concurrency:
+      group: npm-publish
+      cancel-in-progress: false
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag && format('refs/tags/{0}', inputs.tag) || github.ref }}
+
+      - name: Verify release tag matches package version
+        env:
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const { version } = JSON.parse(readFileSync('package.json', 'utf8'));
+          if (![version, `v${version}`].includes(process.env.RELEASE_TAG)) {
+            throw new Error(`Release tag must match package version ${version}`);
+          }
+          NODE
+
       - name: Set up node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Update npm for trusted publishing
+        run: npm install --global npm@11
+
       - name: Install dependencies
-        run: yarn install
+        run: yarn install --frozen-lockfile
       - name: Build
         run: yarn build
 
       - name: Publish to npm
-        run: |
-          npm config set //registry.npmjs.org/:_authToken ${NPM_TOKEN}
-          if [[ ${GITHUB_REF} == *alpha* ]]; then
-            npm publish --access public --tag alpha
-          elif [[ ${GITHUB_REF} == *beta* ]]; then
-            npm publish --access public --tag beta
-          else
-            npm publish --access public
-          fi
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          case "$RELEASE_TAG" in
+            *alpha*) tag=alpha ;;
+            *beta*) tag=beta ;;
+            *-*) tag=next ;;
+            *) tag=latest ;;
+          esac
+          npm publish --access public --provenance --tag "$tag"
