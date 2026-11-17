@@ -9,10 +9,10 @@ import * as Sync from "../../../index";
  */
 export interface Audio {
     type: "audio";
-    /** URL of the audio to be used for generation. Either `url` or `assetId` must be provided. */
+    /** Absolute HTTP or HTTPS URL of the audio to be used for generation. Either `url` or `assetId` must be provided. If your organization has a configured custom output bucket, an s3:// URL in that bucket is supported. A TikTok, Instagram, Facebook, or YouTube video link is imported first; the request returns 409 import_in_progress until the import finishes. */
     url?: string;
     /** ID of an audio asset from your media library. Either `url` or `assetId` must be provided. */
     assetId?: Sync.AssetId;
-    /** Reference identifier for this audio input, used to link audio inputs to specific segments when using [segments](/api-reference/api/generate-api/create#request.body.segments). Required when using segments array. */
+    /** Reference identifier for this audio input, used to link audio inputs to specific segments when using [segments](/docs/api-reference/api/generate-api/create#request.body.segments). Required when using segments array. */
     refId?: string;
 }

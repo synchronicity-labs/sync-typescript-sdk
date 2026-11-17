@@ -10,13 +10,13 @@ import * as Sync from "../../../index";
 export interface CreateDialogueEditDto {
     /** The transcript the edits refer to, as returned by GET /v2/transcriptions/{id}. Edits name words by their id in this transcript. Word timings are in milliseconds from the start of the source video. */
     transcript: Sync.Transcript;
-    /** The edits to apply: change replaces one word (wordId, replacement), remove cuts a contiguous run of words (wordIds). Between 1 and 100 edits per job. */
+    /** The edits to apply: change replaces one word (wordId, replacement, and an optional pronunciation), remove cuts a contiguous run of words (wordIds). Between 1 and 100 edits per job. More than 100 returns 400 with errorCode dialogue_edit_too_many_edits. */
     edits: Sync.DialogueEditOperation[];
     /** URL of the source video the transcript was made from, hosted in sync. storage (upload it via POST /v2/assets/upload first). */
     sourceVideoUrl: string;
     /** Start of the edited window, in milliseconds from the start of the source. Use the same window the transcript was made for. Defaults to 0. An API-key request must leave startMs and endMs unset; the edit then covers the whole video. */
     startMs?: number;
-    /** End of the edited window, in milliseconds from the start of the source. Omit to run to the end. The window cannot exceed 10 minutes. An API-key request must leave startMs and endMs unset to edit the whole video. */
+    /** End of the edited window, in milliseconds from the start of the source. Omit to run to the end. The window cannot exceed 10 minutes. An API-key request must leave startMs and endMs unset to edit the whole video. With endMs omitted, a transcript that runs more than 10 minutes past startMs returns 422 with errorCode `SOURCE_TOO_LONG`. */
     endMs?: number;
     /** Opaque voice id returned as voiceId by an earlier dialogue-edit job of the same source. Reusing it skips cloning the voice again. Omit on the first job for a source. Ids your organization has not used before are ignored. */
     voiceId?: string;

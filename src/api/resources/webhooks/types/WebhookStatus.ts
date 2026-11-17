@@ -5,9 +5,10 @@
 /**
  * The terminal status that triggered the webhook.
  */
-export type WebhookStatus = "COMPLETED" | "FAILED" | "REJECTED";
+export type WebhookStatus = "COMPLETED" | "NO_OP" | "FAILED" | "REJECTED";
 export const WebhookStatus = {
     Completed: "COMPLETED",
+    NoOp: "NO_OP",
     Failed: "FAILED",
     Rejected: "REJECTED",
 } as const;

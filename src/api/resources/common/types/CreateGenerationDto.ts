@@ -7,11 +7,11 @@ import * as Sync from "../../../index";
 export interface CreateGenerationDto {
     /** name of the model to use for generation. */
     model: Sync.Model;
-    /** Normal lipsync requests must include exactly one visual input (video or image) and one audio or text input. Dubbed lipsync requests using dubParams must include exactly one video input and no audio or text input, because Sync extracts the dubbing source audio from that video. Image inputs are only supported with the sync-3 model. When using segments, audio or text inputs can carry unique refId values. */
+    /** Normal lipsync requests must include exactly one visual input (video or image) and one audio or text input. Dubbed lipsync requests using dubParams must include exactly one video input and no audio or text input, because Sync extracts the dubbing source audio from that video. Image inputs are only supported with the sync-3 model. When using segments, audio or text inputs can carry unique refId values. At most 102 inputs. */
     input: Sync.Input[];
     /** additional options available for generation. */
     options?: Sync.GenerationOptions;
-    /** segments definition list. When provided, allows defining one or more video segments with different audio inputs for each segment. Each segment specifies a time range and references an audio input by refId. */
+    /** segments definition list. When provided, allows defining one or more video segments with different audio inputs for each segment. Each segment specifies a time range and references an audio input by refId. At most 100 segments. */
     segments?: Sync.GenerationSegment[];
     /** One audio input that plays over the whole finished output from its first second, replacing the sound of every part, lipsynced or not. Use it with segments, for example one dubbed track for a whole video where some segments set lipsync to false. When any segment sets lipsync to false and this is omitted, the only audio input is used. Not available with a custom output bucket, zero data retention or a retention override. */
     outputAudio?: Sync.OutputAudio;
@@ -23,6 +23,6 @@ export interface CreateGenerationDto {
     dubParams?: Sync.DubDto;
     /** Optionally attach this generation to a project (created via POST /v2/projects) so it appears in Studio under that project. Must reference a project in your organization — otherwise the request is rejected with 422. */
     projectId?: Sync.ProjectId;
-    /** Use the id of a completed dialogue edit from POST /v2/dialogue-edits to supply the audio and edited regions. Requires a preview that ran segment lipsync and section expansion (see the job's segmentLipsyncEnabled and sectionExpansionEnabled). Send exactly one video input, the same video the dialogue edit was made from, and no audio input, segments or dubParams. Billing, status, wait and webhooks work as for any generation. */
+    /** Use the id of a completed dialogue edit from POST /v2/dialogue-edits to supply the audio and edited regions. Requires a preview that ran segment lipsync and section expansion (see the job's segmentLipsyncEnabled and sectionExpansionEnabled). Send exactly one video input, the same video the dialogue edit was made from, and no audio input, segments or dubParams. Billing, status, wait and webhooks work as for any generation. Also accepted in batch rows for organizations with dialogue-edit batches enabled. */
     dialogueEdit?: Sync.DialogueEditReference;
 }

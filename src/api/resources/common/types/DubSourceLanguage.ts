@@ -3,7 +3,7 @@
  */
 
 /**
- * Source language code for dubbing. Use "auto" to let the dubbing engine detect the source language.
+ * Source language code for dubbing. Use auto to detect the source language.
  */
 export type DubSourceLanguage =
     | "auto"
@@ -37,6 +37,8 @@ export type DubSourceLanguage =
     | "da"
     | "hu"
     | "mr"
+    /**
+     * Deprecated language alias. Prefer fil for new requests. */
     | "tl"
     | "ug"
     | "wo"
@@ -80,6 +82,8 @@ export type DubSourceLanguage =
     | "pt"
     | "am"
     | "hy"
+    /**
+     * Deprecated language alias. Prefer dgo for new requests. */
     | "doi"
     | "de"
     | "jv"
@@ -99,9 +103,24 @@ export type DubSourceLanguage =
     | "ur"
     | "uz"
     | "ru"
-    /**
-     * [DEPRECATED] Alias for Tagalog (`tl`); still accepted and mapped to `tl`. */
-    | "fil";
+    | "fil"
+    | "ar-EG"
+    | "yue"
+    | "zh-TW"
+    | "dgo"
+    | "en-AU"
+    | "en-CA"
+    | "en-GB"
+    | "en-US"
+    | "fr-CA"
+    | "fr-FR"
+    | "cmn"
+    | "pt-BR"
+    | "pt-PT"
+    | "es-AR"
+    | "es-CL"
+    | "es-ES"
+    | "es-MX";
 export const DubSourceLanguage = {
     Auto: "auto",
     English: "en",
@@ -197,4 +216,21 @@ export const DubSourceLanguage = {
     Uzbek: "uz",
     Russian: "ru",
     Filipino: "fil",
+    ArabicEgypt: "ar-EG",
+    Cantonese: "yue",
+    ChineseTaiwan: "zh-TW",
+    DogriCurrent: "dgo",
+    EnglishAustralia: "en-AU",
+    EnglishCanada: "en-CA",
+    EnglishUnitedKingdom: "en-GB",
+    EnglishUnitedStates: "en-US",
+    FrenchCanada: "fr-CA",
+    FrenchFrance: "fr-FR",
+    MandarinChinese: "cmn",
+    PortugueseBrazil: "pt-BR",
+    PortuguesePortugal: "pt-PT",
+    SpanishArgentina: "es-AR",
+    SpanishChile: "es-CL",
+    SpanishSpain: "es-ES",
+    SpanishMexico: "es-MX",
 } as const;

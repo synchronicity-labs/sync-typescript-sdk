@@ -8,7 +8,7 @@ import * as Sync from "../../../index";
  * Register a media URL as a reusable asset. Use the returned asset id in generation inputs (input[].assetId) or as a voice clone sample.
  */
 export interface CreateAssetRequest {
-    /** The public URL of the media to register — e.g. the url returned by POST /v2/assets/upload. Registration verifies the upload happened and enforces plan limits on the actual file size. */
+    /** The public URL of the media to register — e.g. the url returned by POST /v2/assets/upload. Registration verifies the upload happened and enforces plan limits on the actual file size. A link to a single TikTok, Instagram, Facebook, or YouTube video is imported as a VIDEO asset instead. */
     url: string;
     /** The type of asset. */
     type: Sync.AssetType;
@@ -32,4 +32,6 @@ export interface CreateAssetRequest {
     width?: number;
     /** Height in pixels for video or image assets. */
     height?: number;
+    /** SHA-256 digest of the file's bytes, as 64 lowercase hex characters. */
+    contentSha256?: string;
 }

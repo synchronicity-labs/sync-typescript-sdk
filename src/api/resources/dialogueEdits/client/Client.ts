@@ -33,11 +33,13 @@ export class DialogueEdits {
     constructor(protected readonly _options: DialogueEdits.Options = {}) {}
 
     /**
-     * Applies word-level edits to a transcript from `POST /v2/transcriptions` and synthesizes preview audio for the same window: only the edited spans are re-spoken in a voice cloned from the source, everything else stays the original recording. Poll `GET /v2/dialogue-edits/{id}` until `status` is `COMPLETED`, `COMPLETED_PARTIAL` or `FAILED`; a completed or partially completed job carries `previewAudioUrl`, the retimed `resultTranscript` and the edited regions as `resultSlots`. Edits that cannot be applied to the transcript are refused with a 400 before a job exists. An API-key request is admitted only for the whole video (leave startMs and endMs unset) and only when the organization's rollout enables segment lipsync and section expansion: a partial window is refused with errorCode `dialogue_edit_unsupported` (422), a rollout without both flags with `dialogue_edit_retime_required` (422), and a rollout that cannot be evaluated with `generation_infra_service_unavailable` (503; retry with backoff). Studio sessions may select a window. Normal billing, planning, duration and rate limits still apply.
+     * Applies word-level edits to a transcript from `POST /v2/transcriptions` and synthesizes preview audio for the same window: only the edited spans are re-spoken in a voice cloned from the source, everything else stays the original recording. Poll `GET /v2/dialogue-edits/{id}` until `status` is `COMPLETED`, `COMPLETED_PARTIAL` or `FAILED`; a completed or partially completed job carries `previewAudioUrl`, the retimed `resultTranscript` and the edited regions as `resultSlots`. Edits that cannot be applied return 400 PLAN_FAILED. Requests with more than 100 edits return 400 dialogue_edit_too_many_edits. API-key requests must cover the whole video: omit startMs and endMs. A partial window returns 422 dialogue_edit_unsupported. A source longer than the 10-minute dialogue limit returns 422 SOURCE_TOO_LONG.
+     * Send Idempotency-Key on the first request and reuse it with the same body on retries. A replay returns 200 with the original job's current state and Idempotency-Replayed: true. Reusing a key with different inputs returns 409 IDEMPOTENCY_KEY_CONFLICT. A malformed key returns 400 INVALID_IDEMPOTENCY_KEY. If the job cannot be queued, retry the 503 with the same key and body. Honor Retry-After when present.
      *
-     * @param {Sync.CreateDialogueEditDto} request
+     * @param {Sync.CreateDialogueEditRequest} request
      * @param {DialogueEdits.RequestOptions} requestOptions - Request-specific configuration.
      *
+     * @throws {@link Sync.ConflictError}
      * @throws {@link Sync.BadRequestError}
      * @throws {@link Sync.UnauthorizedError}
      * @throws {@link Sync.PaymentRequiredError}
@@ -48,47 +50,50 @@ export class DialogueEdits {
      *
      * @example
      *     await client.dialogueEdits.create({
-     *         sourceVideoUrl: "https://assets.sync.so/docs/example-video.mp4",
-     *         transcript: {
-     *             segments: [{
-     *                     id: "seg_1",
-     *                     words: [{
-     *                             id: "w_1",
-     *                             text: "The",
-     *                             startMs: 120,
-     *                             endMs: 260
-     *                         }, {
-     *                             id: "w_2",
-     *                             text: "quarterly",
-     *                             startMs: 260,
-     *                             endMs: 820
-     *                         }, {
-     *                             id: "w_3",
-     *                             text: "results",
-     *                             startMs: 820,
-     *                             endMs: 1240
-     *                         }]
-     *                 }],
-     *             speakerCount: 1
-     *         },
-     *         edits: [{
-     *                 kind: "change",
-     *                 wordId: "w_2",
-     *                 replacement: "annual"
-     *             }]
+     *         body: {
+     *             sourceVideoUrl: "https://assets.sync.so/docs/example-video.mp4",
+     *             transcript: {
+     *                 segments: [{
+     *                         id: "seg_1",
+     *                         words: [{
+     *                                 id: "w_1",
+     *                                 text: "The",
+     *                                 startMs: 120,
+     *                                 endMs: 260
+     *                             }, {
+     *                                 id: "w_2",
+     *                                 text: "quarterly",
+     *                                 startMs: 260,
+     *                                 endMs: 820
+     *                             }, {
+     *                                 id: "w_3",
+     *                                 text: "results",
+     *                                 startMs: 820,
+     *                                 endMs: 1240
+     *                             }]
+     *                     }],
+     *                 speakerCount: 1
+     *             },
+     *             edits: [{
+     *                     kind: "change",
+     *                     wordId: "w_2",
+     *                     replacement: "annual"
+     *                 }]
+     *         }
      *     })
      */
     public create(
-        request: Sync.CreateDialogueEditDto,
+        request: Sync.CreateDialogueEditRequest,
         requestOptions?: DialogueEdits.RequestOptions,
     ): core.HttpResponsePromise<Sync.DialogueEditJob> {
         return core.HttpResponsePromise.fromPromise(this.__create(request, requestOptions));
     }
 
     private async __create(
-        request: Sync.CreateDialogueEditDto,
+        request: Sync.CreateDialogueEditRequest,
         requestOptions?: DialogueEdits.RequestOptions,
     ): Promise<core.WithRawResponse<Sync.DialogueEditJob>> {
+        const { "Idempotency-Key": idempotencyKey, body: _body } = request;
         const _response = await (this._options.fetcher ?? core.fetcher)({
             url: urlJoin(
                 (await core.Supplier.get(this._options.baseUrl)) ??
@@ -100,16 +105,17 @@ export class DialogueEdits {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.4.0",
-                "User-Agent": "@sync.so/sdk/0.4.0",
+                "X-Fern-SDK-Version": "0.5.0",
+                "User-Agent": "@sync.so/sdk/0.5.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
+                "Idempotency-Key": idempotencyKey != null ? idempotencyKey : undefined,
                 ...(await this._getCustomAuthorizationHeaders()),
                 ...requestOptions?.headers,
             },
             contentType: "application/json",
             requestType: "json",
-            body: request,
+            body: _body,
             timeoutMs: requestOptions?.timeoutInSeconds != null ? requestOptions.timeoutInSeconds * 1000 : 60000,
             maxRetries: requestOptions?.maxRetries,
             abortSignal: requestOptions?.abortSignal,
@@ -120,6 +126,8 @@ export class DialogueEdits {
 
         if (_response.error.reason === "status-code") {
             switch (_response.error.statusCode) {
+                case 409:
+                    throw new Sync.ConflictError(_response.error.body as Sync.GenerationError, _response.rawResponse);
                 case 400:
                     throw new Sync.BadRequestError(_response.error.body as Sync.GenerationError, _response.rawResponse);
                 case 401:
@@ -213,8 +221,8 @@ export class DialogueEdits {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.4.0",
-                "User-Agent": "@sync.so/sdk/0.4.0",
+                "X-Fern-SDK-Version": "0.5.0",
+                "User-Agent": "@sync.so/sdk/0.5.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),

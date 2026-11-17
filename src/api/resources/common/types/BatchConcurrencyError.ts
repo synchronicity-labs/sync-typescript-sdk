@@ -5,7 +5,7 @@
 import * as Sync from "../../../index";
 
 /**
- * Returned with a 429 `concurrency_limit_reached` when a batch cannot start. On Scale and above, you already run as many batches as your plan's concurrency limit. Below Scale, every batch record runs as a generation, and the batch has more records than your plan has free generation slots. The response also carries a `Retry-After` header (seconds) and an `X-Sync-Concurrency-Limit` header, plus `X-Sync-Active-Generations` below Scale.
+ * Returned with a 429 `concurrency_limit_reached` when you already run as many batches as your plan's batch concurrency limit. The response also carries a `Retry-After` header (seconds) and an `X-Sync-Concurrency-Limit` header.
  */
 export interface BatchConcurrencyError {
     /** The HTTP status code (429). */
@@ -16,9 +16,7 @@ export interface BatchConcurrencyError {
     message: Sync.GenerationErrorMessage;
     /** The number of batches you currently have in progress. */
     activeBatches?: number;
-    /** Below Scale only: generations in progress, batch records included. The batch can hold at most `concurrencyLimit` minus this many records. */
-    activeGenerations?: number;
-    /** Your plan's concurrency limit: concurrent batches on Scale and above, concurrent generations below Scale. */
+    /** The maximum number of concurrent batches allowed on your plan. */
     concurrencyLimit?: number;
     /** Suggested number of seconds to wait before retrying. Mirrors the `Retry-After` header. */
     retryAfterSeconds?: number;

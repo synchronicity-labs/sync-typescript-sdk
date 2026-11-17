@@ -3,13 +3,14 @@
  */
 
 /**
- * The status of the generation.
+ * The status of the generation. COMPLETED, NO_OP, FAILED and REJECTED are final. NO_OP means processing finished but no frame was lip-synced, for example because no face was detected: outputUrl is the input video unchanged (with any generated speech or dub audio), error and errorCode say why, and lip sync is not charged. For NO_OP, FAILED or REJECTED, inspect errorCode and error before retrying. Plain API generations return COMPLETED instead of NO_OP until December 17, 2026. See [Finished without lip sync](/docs/product/generation-times#finished-without-lip-sync).
  */
-export type GenerationStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED" | "REJECTED";
+export type GenerationStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "NO_OP" | "FAILED" | "REJECTED";
 export const GenerationStatus = {
     Pending: "PENDING",
     Processing: "PROCESSING",
     Completed: "COMPLETED",
+    NoOp: "NO_OP",
     Failed: "FAILED",
     Rejected: "REJECTED",
 } as const;

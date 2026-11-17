@@ -5,10 +5,10 @@
 import * as Sync from "../../../index";
 
 export interface AccountFreeAllowance {
-    /** Free lipsync generations. In-flight generations count as used. */
+    /** Free lipsync generation allowance. */
     generations: Sync.AccountAllowanceUsage;
     /** Free text-to-speech and dubbing jobs, which share one pool. */
     speech: Sync.AccountAllowanceUsage;
-    /** When the free month resets. It is anchored to the day the organization was created. */
+    /** When the free allowance renews. */
     resetsAt: string;
 }

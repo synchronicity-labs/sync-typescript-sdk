@@ -35,14 +35,16 @@ export class Batch {
     constructor(protected readonly _options: Batch.Options = {}) {}
 
     /**
-     * Create a batch processing job from a JSONL file. Requires a paid plan; free accounts get 402 `plan_feature_unavailable`. Send the file in multipart field `input` (or the accepted `file` alias); it must be 5 MB or smaller. On Scale and above a batch holds 20-500 records by default and is queued, holding one concurrency slot. Below Scale every record runs as a generation right away, so a batch holds 1 record up to your plan's concurrency limit: more records than that returns 400, and more records than your currently free generation slots returns 429 `concurrency_limit_reached`. Credit-billed plans reserve credits for the whole batch at submit and get 402 `insufficient_credits` when the balance is short. Each line must contain `request_id`, endpoint exactly `/v2/generate`, and a generation `payload`. To send the records as a JSON array instead of a file, use "Create Batch from Rows", the `application/json` form of the same endpoint. Errors name a refused record by its 1-based line, counting non-empty lines: dialogue edit refusals return it as `lineNumber`, other record errors only in `message`.
+     * Create a batch processing job from a JSONL file. Requires the Scale plan or above and approval for your organization. Access is disabled by default, including for new Scale subscriptions. Contact support@sync.so to request access. Without approval, creation and dry runs return 403 `batch_access_not_enabled`. Approved organizations on other plans get 402 `plan_feature_unavailable` with `requiredPlan`. Send the file in multipart field `input` (or the accepted `file` alias); it must be 5 MB or smaller and contain 20-500 records by default. A batch is queued and holds one slot of your plan's batch concurrency limit; more active batches than that returns 429 `concurrency_limit_reached`. Each line must contain `request_id`, endpoint exactly `/v2/generate`, and a generation `payload`. To send the records as a JSON array instead of a file, use "Create Batch from Rows", the `application/json` form of the same endpoint. Errors name a refused record by its 1-based line, counting non-empty lines: dialogue edit refusals return it as `lineNumber`, other record errors only in `message`.
      *
      * @param {File | fs.ReadStream | Blob} input
      * @param {Sync.CreateBatchRequest} request
      * @param {Batch.RequestOptions} requestOptions - Request-specific configuration.
      *
+     * @throws {@link Sync.ServiceUnavailableError}
      * @throws {@link Sync.BadRequestError}
      * @throws {@link Sync.UnauthorizedError}
+     * @throws {@link Sync.ForbiddenError}
      * @throws {@link Sync.PaymentRequiredError}
      * @throws {@link Sync.TooManyRequestsError}
      * @throws {@link Sync.InternalServerError}
@@ -93,8 +95,8 @@ export class Batch {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.4.0",
-                "User-Agent": "@sync.so/sdk/0.4.0",
+                "X-Fern-SDK-Version": "0.5.0",
+                "User-Agent": "@sync.so/sdk/0.5.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -114,6 +116,11 @@ export class Batch {
 
         if (_response.error.reason === "status-code") {
             switch (_response.error.statusCode) {
+                case 503:
+                    throw new Sync.ServiceUnavailableError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
                 case 400:
                     throw new Sync.BadRequestError(_response.error.body as Sync.GenerationError, _response.rawResponse);
                 case 401:
@@ -121,6 +128,8 @@ export class Batch {
                         _response.error.body as Sync.GenerationError,
                         _response.rawResponse,
                     );
+                case 403:
+                    throw new Sync.ForbiddenError(_response.error.body as Sync.GenerationError, _response.rawResponse);
                 case 402:
                     throw new Sync.PaymentRequiredError(
                         _response.error.body as Sync.GenerationError,
@@ -163,13 +172,14 @@ export class Batch {
     }
 
     /**
-     * The `application/json` form of `POST /v2/batch`, the same endpoint as "Create Batch": send the records in a `rows` array instead of a JSONL file. Each row is the same object as one JSONL line and is validated the same way: 20-500 rows by default on Scale and above, 1 row up to your free generation slots below Scale, 5 MB or smaller when serialized as JSONL, unique `request_id` values, and endpoint exactly `/v2/generate`. Errors name a refused row by its line, where line N is `rows[N-1]`: dialogue edit refusals return it as `lineNumber`, other record errors only in `message`. Requires a paid plan. In early access, enabled per organization, a row's payload can carry `dialogueEdit` to render a completed preview from POST /v2/dialogue-edits: send one video input, the video the preview was made from, and no audio input. All dialogue edit rows in a batch must come from the same source video. Each row is expanded at submit into the request POST /v2/generate builds for that preview and is charged the same. A dialogue edit row that cannot be rendered refuses the whole batch with the `/v2/generate` errorCode (for example dialogue_edit_not_found, 422) and `lineNumber`. See [Batch Processing](/api-reference/guides/batch-processing).
+     * The `application/json` form of `POST /v2/batch`, the same endpoint as "Create Batch": send the records in a `rows` array instead of a JSONL file. Each row is the same object as one JSONL line and is validated the same way: 20-500 rows by default, 5 MB or smaller when serialized as JSONL, unique `request_id` values, and endpoint exactly `/v2/generate`. Errors name a refused row by its line, where line N is `rows[N-1]`: dialogue edit refusals return it as `lineNumber`, other record errors only in `message`. Requires the Scale plan or above and approval for your organization. Access is disabled by default; contact support@sync.so to request access. Without approval, creation and dry runs return 403 `batch_access_not_enabled`. In early access, enabled per organization, a row's payload can carry `dialogueEdit` to render a completed preview from POST /v2/dialogue-edits: send one video input, the video the preview was made from, and no audio input. All dialogue edit rows in a batch must come from the same source video. Each row is expanded at submit into the request POST /v2/generate builds for that preview and is charged the same. The expanded batch must also be 5 MB or smaller. A dialogue edit row that cannot be rendered refuses the whole batch with the `/v2/generate` errorCode (for example dialogue_edit_not_found, 422) and `lineNumber`. See [Batch Processing](/docs/api-reference/guides/batch-processing).
      *
      * @param {Sync.CreateBatchFromRowsRequest} request
      * @param {Batch.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link Sync.BadRequestError}
      * @throws {@link Sync.UnauthorizedError}
+     * @throws {@link Sync.ForbiddenError}
      * @throws {@link Sync.PaymentRequiredError}
      * @throws {@link Sync.UnprocessableEntityError}
      * @throws {@link Sync.TooManyRequestsError}
@@ -463,8 +473,8 @@ export class Batch {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.4.0",
-                "User-Agent": "@sync.so/sdk/0.4.0",
+                "X-Fern-SDK-Version": "0.5.0",
+                "User-Agent": "@sync.so/sdk/0.5.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -490,6 +500,8 @@ export class Batch {
                         _response.error.body as Sync.GenerationError,
                         _response.rawResponse,
                     );
+                case 403:
+                    throw new Sync.ForbiddenError(_response.error.body as Sync.GenerationError, _response.rawResponse);
                 case 402:
                     throw new Sync.PaymentRequiredError(
                         _response.error.body as Sync.GenerationError,
@@ -568,8 +580,8 @@ export class Batch {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.4.0",
-                "User-Agent": "@sync.so/sdk/0.4.0",
+                "X-Fern-SDK-Version": "0.5.0",
+                "User-Agent": "@sync.so/sdk/0.5.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -631,6 +643,7 @@ export class Batch {
      * @param {Sync.ListBatchesRequest} request
      * @param {Batch.RequestOptions} requestOptions - Request-specific configuration.
      *
+     * @throws {@link Sync.BadRequestError}
      * @throws {@link Sync.UnauthorizedError}
      * @throws {@link Sync.InternalServerError}
      *
@@ -673,8 +686,8 @@ export class Batch {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.4.0",
-                "User-Agent": "@sync.so/sdk/0.4.0",
+                "X-Fern-SDK-Version": "0.5.0",
+                "User-Agent": "@sync.so/sdk/0.5.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -693,6 +706,8 @@ export class Batch {
 
         if (_response.error.reason === "status-code") {
             switch (_response.error.statusCode) {
+                case 400:
+                    throw new Sync.BadRequestError(_response.error.body as Sync.GenerationError, _response.rawResponse);
                 case 401:
                     throw new Sync.UnauthorizedError(
                         _response.error.body as Sync.GenerationError,

@@ -11,7 +11,7 @@ export interface Image {
     type: "image";
     /** Optional reference identifier for segment definitions. Use this when a segment needs to refer back to a specific visual input item. */
     refId?: string;
-    /** URL of the image to be used for generation. Either `url` or `assetId` must be provided. */
+    /** Absolute HTTP or HTTPS URL of the image to be used for generation. Either `url` or `assetId` must be provided. If your organization has a configured custom output bucket, an s3:// URL in that bucket is supported. */
     url?: string;
     /** ID of an image asset from your media library. Either `url` or `assetId` must be provided. */
     assetId?: Sync.AssetId;

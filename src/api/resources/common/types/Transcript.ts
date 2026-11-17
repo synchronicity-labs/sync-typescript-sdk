@@ -12,4 +12,6 @@ export interface Transcript {
     segments: Sync.TranscriptSegment[];
     /** The number of distinct speakers detected. */
     speakerCount: number;
+    /** Speakers in the transcript. Word speakerId values refer to these IDs. Absent on older transcripts. */
+    speakers?: Sync.TranscriptSpeaker[];
 }

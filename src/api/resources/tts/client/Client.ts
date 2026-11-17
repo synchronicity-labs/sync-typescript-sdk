@@ -77,8 +77,8 @@ export class Tts {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.4.0",
-                "User-Agent": "@sync.so/sdk/0.4.0",
+                "X-Fern-SDK-Version": "0.5.0",
+                "User-Agent": "@sync.so/sdk/0.5.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -198,8 +198,8 @@ export class Tts {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.4.0",
-                "User-Agent": "@sync.so/sdk/0.4.0",
+                "X-Fern-SDK-Version": "0.5.0",
+                "User-Agent": "@sync.so/sdk/0.5.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 "Idempotency-Key": idempotencyKey != null ? idempotencyKey : undefined,
@@ -300,8 +300,8 @@ export class Tts {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.4.0",
-                "User-Agent": "@sync.so/sdk/0.4.0",
+                "X-Fern-SDK-Version": "0.5.0",
+                "User-Agent": "@sync.so/sdk/0.5.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),

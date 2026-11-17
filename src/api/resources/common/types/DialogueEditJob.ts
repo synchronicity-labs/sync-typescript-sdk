@@ -32,9 +32,9 @@ export interface DialogueEditJob {
     resultTranscript?: Sync.Transcript;
     /** The edited regions in order, each located on the preview timeline (outputStartMs, outputDurationMs) and in the source video (sourceStartMs, sourceDurationMs). Everything between two slots is untouched source. Null until the job completes. */
     resultSlots?: Sync.DialogueEditResultSlot[];
-    /** Whether the preview was cut for per-region lipsync (true) or for re-lipsyncing the whole window (false). Decided when the job is created and fixed for its lifetime. For jobs created with an API key, the rollout is evaluated against the organization's members. */
+    /** Whether the preview was cut for per-region lipsync (true) or for re-lipsyncing the whole window (false). Decided when the job is created and fixed for its lifetime. True for new jobs. */
     segmentLipsyncEnabled: boolean;
-    /** Whether the preview was made under the section-expansion policy. Decided when the job is created and fixed for its lifetime. For jobs created with an API key, the rollout is evaluated against the organization's members. */
+    /** Whether the preview was made under the section-expansion policy. Decided when the job is created and fixed for its lifetime. True for new jobs. */
     sectionExpansionEnabled: boolean;
     /** Opaque id of the voice cloned from the source and used for synthesis. Pass it as voiceId on the next dialogue-edit job of the same source to skip cloning. Null until the voice exists. */
     voiceId?: string;

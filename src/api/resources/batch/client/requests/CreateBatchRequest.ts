@@ -15,8 +15,8 @@
  *     }
  */
 export interface CreateBatchRequest {
-    /** Optional webhook URL to receive batch completion notifications. A POST request will be sent when the batch completes or fails, with a Sync-Signature header (`t=<unix>,v1=<hmac_sha256>`) signed with the organization webhook secret and a stable Sync-Delivery-Id header. Delivery is attempted up to six times over about two hours. */
+    /** Optional webhook URL to receive batch completion notifications. A POST request will be sent when the batch completes or fails, with a Sync-Signature header (`t=<unix>,v1=<hmac_sha256>`) signed with the organization webhook secret and a stable Sync-Delivery-Id header. Delivery is attempted up to six times over about two hours. A non-empty URL must use http:// or https://; invalid URLs return 400 before creating a batch. */
     webhook_url?: string;
-    /** When true, validates the JSONL file and returns `{ "status": "VALIDATED" }` without creating a batch. */
+    /** When true, validates the JSONL file and returns `{ "status": "VALIDATED" }` without creating a batch. Requires the same organization approval and plan as batch creation. */
     dry_run?: boolean;
 }

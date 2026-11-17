@@ -6,15 +6,15 @@
  * Active speaker detection configuration
  */
 export interface ActiveSpeaker {
-    /** Whether to automatically detect and apply generation to the active speaker */
+    /** Automatically detect the active speaker when set to true. When this object is present, the field defaults to false. */
     auto_detect?: boolean;
     /** Whether to use ASD v3 */
     v3?: boolean;
-    /** Frame index that corresponds to the provided coordinates for manual speaker selection */
+    /** Zero-based frame index for the provided coordinates. Counts from the video start at top level and from the segment start in a segment override. */
     frame_number?: number;
     /** Pixel coordinates [x, y] in the source video frame identified by frame_number. They are forwarded as-is to active speaker selection; they are not normalized ratios. */
     coordinates?: number[];
-    /** Per-frame array of bounding boxes [x1, y1, x2, y2] for the detected face, or null if no box for that frame. Use instead of frame_number + coordinates when you already have detection data. */
+    /** Per-frame array of bounding boxes, each exactly four integers [x1, y1, x2, y2] for the detected face, or null or [] if no box for that frame. Use instead of frame_number + coordinates when you already have detection data. */
     bounding_boxes?: (number[] | undefined)[];
     /** URL to a JSON file containing bounding boxes. Use instead of inline bounding_boxes to avoid large payloads. The JSON must have a "bounding_boxes" array with one entry per frame. */
     bounding_boxes_url?: string;

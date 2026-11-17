@@ -33,7 +33,7 @@ export class Voices {
     constructor(protected readonly _options: Voices.Options = {}) {}
 
     /**
-     * List the voices available to your organization — built-in ElevenLabs voices plus any you have cloned. Use a voice's id as voiceId in POST /v2/tts and in generation text inputs. A voice that carries a `restriction` cannot currently synthesize speech — check `restriction` and choose another voice. Voice availability can change over time, so re-check it rather than assuming a voice stays usable.
+     * List the voices available to your organization — built-in ElevenLabs voices plus any you have cloned. Use a voice's id as voiceId in POST /v2/tts and in generation text inputs. A voice that carries a `restriction` cannot currently synthesize speech — check `restriction` and choose another voice. Voice availability can change over time, so re-check it rather than assuming a voice stays usable. During a provider outage, x-sync-voices-stale: true indicates the last complete list, up to 24 hours old. Retry later for current voices.
      *
      * @param {Sync.ListVoicesRequest} request
      * @param {Voices.RequestOptions} requestOptions - Request-specific configuration.
@@ -72,8 +72,8 @@ export class Voices {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.4.0",
-                "User-Agent": "@sync.so/sdk/0.4.0",
+                "X-Fern-SDK-Version": "0.5.0",
+                "User-Agent": "@sync.so/sdk/0.5.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -129,7 +129,7 @@ export class Voices {
     }
 
     /**
-     * Retrieve a single voice by the same id values GET /v2/voices exposes — a built-in ElevenLabs voice id or the UUID of a voice cloned by your organization. A missing or foreign-organization id returns a 404 with errorCode voice_not_found.
+     * Retrieve a single voice by the same id values GET /v2/voices exposes — a built-in ElevenLabs voice id or the UUID of a voice cloned by your organization. A missing or foreign-organization id returns a 404 with errorCode voice_not_found. During a provider outage, a saved voice can be returned with x-sync-voices-stale: true. An ID absent from that saved list returns 503 rather than 404; retry after recovery. A pending clone returns 409 voice_clone_pending. Poll this GET until 200 (ready) or 404 (no voice was created); do not submit another clone while it is pending.
      *
      * @param {string} id - The voice id — a built-in provider voice id or a cloned voice UUID.
      * @param {Sync.GetVoiceRequest} request
@@ -137,6 +137,8 @@ export class Voices {
      *
      * @throws {@link Sync.UnauthorizedError}
      * @throws {@link Sync.NotFoundError}
+     * @throws {@link Sync.ConflictError}
+     * @throws {@link Sync.ServiceUnavailableError}
      * @throws {@link Sync.InternalServerError}
      *
      * @example
@@ -172,8 +174,8 @@ export class Voices {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.4.0",
-                "User-Agent": "@sync.so/sdk/0.4.0",
+                "X-Fern-SDK-Version": "0.5.0",
+                "User-Agent": "@sync.so/sdk/0.5.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -199,6 +201,13 @@ export class Voices {
                     );
                 case 404:
                     throw new Sync.NotFoundError(_response.error.body as Sync.GenerationError, _response.rawResponse);
+                case 409:
+                    throw new Sync.ConflictError(_response.error.body as Sync.GenerationError, _response.rawResponse);
+                case 503:
+                    throw new Sync.ServiceUnavailableError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
                 case 500:
                     throw new Sync.InternalServerError(
                         _response.error.body as Sync.GenerationError,
@@ -231,11 +240,11 @@ export class Voices {
     }
 
     /**
-     * Clone a custom voice from an audio or video sample and get back its id for use in POST /v2/tts and generation text inputs.
+     * Clone a custom voice from an audio or video sample and get back its id for use in POST /v2/tts and generation text inputs. Provide exactly one sample source: url, assetId, or sampleUrls with 1–10 hosted URLs.
      *
-     * The exact sequence for a local file: (1) request a presigned URL via POST /v2/assets/upload, (2) PUT the file bytes to the returned uploadUrl, (3) clone from the returned url (or register it via POST /v2/assets and clone from the assetId). Samples must be hosted in sync. labs storage — external URLs are rejected with errorCode voice_sample_upload_required. Video sources have their audio track extracted automatically (first 2 minutes). Video sources staged for extraction are limited to 1 GiB (1,073,741,824 bytes); larger sources return 413 voice_sample_source_too_large. This endpoint allows 10 requests per hour per API key (or per signed-in user).
+     * The exact sequence for a local file: (1) request a presigned URL via POST /v2/assets/upload, (2) PUT the file bytes to the returned uploadUrl, (3) clone from the returned url (or register it via POST /v2/assets and clone from the assetId). Samples must be hosted in sync. labs storage — external URLs are rejected with errorCode voice_sample_upload_required. Video sources have their audio track extracted automatically (first 2 minutes). Video sources staged for extraction are limited to 1 GiB (1,073,741,824 bytes); larger sources return 413 voice_sample_source_too_large. This endpoint allows 10 requests per hour per API key (or per signed-in user). Audio samples are limited to 10 MiB (10,485,760 bytes), or 50 MiB (52,428,800 bytes) when you connect your own ElevenLabs API key.
      *
-     * For best results use 30 seconds to 2 minutes of clear, single-speaker speech without background music or noise. Samples that are too short are rejected with errorCode voice_sample_too_short. Clone slots are limited per plan (403 voice_clone_limit_reached) and voice names must be unique within your organization (409 voice_name_conflict). Sample source problems return 422 (voice_sample_not_accessible, voice_sample_type_unsupported, voice_sample_upload_required, voice_sample_extraction_failed); invalid or too-short samples return 400 (voice_sample_invalid, voice_sample_too_short). A 429 may mean the request-rate limit was exceeded or shared provider capacity is busy (voice_clone_busy); follow the response retry guidance. Provider outages return 503 (elevenlabs_service_unavailable).
+     * For best results use 30 seconds to 2 minutes of clear, single-speaker speech without background music or noise. Samples that are too short are rejected with errorCode voice_sample_too_short. Clone slots are limited per plan (403 voice_clone_limit_reached) and voice names must be unique within your organization (409 voice_name_conflict). An uncertain clone returns 409 voice_clone_pending with voiceId. Poll GET /v2/voices/{voiceId} until 200 or 404 instead of submitting another clone. Sample source problems return 422 (voice_sample_not_accessible, voice_sample_type_unsupported, voice_sample_upload_required, voice_sample_extraction_failed); invalid or too-short samples return 400 (voice_sample_invalid, voice_sample_too_short). A 429 may mean the request-rate limit was exceeded or shared provider capacity is busy (voice_clone_busy); follow the response retry guidance. Provider outages return 503 (elevenlabs_service_unavailable).
      *
      * @param {Sync.CreateVoiceRequest} request
      * @param {Voices.RequestOptions} requestOptions - Request-specific configuration.
@@ -280,8 +289,8 @@ export class Voices {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.4.0",
-                "User-Agent": "@sync.so/sdk/0.4.0",
+                "X-Fern-SDK-Version": "0.5.0",
+                "User-Agent": "@sync.so/sdk/0.5.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -368,13 +377,15 @@ export class Voices {
     }
 
     /**
-     * Delete a cloned voice, freeing a clone slot. Unknown ids return 404 with errorCode `voice_not_found`.
+     * Delete a cloned voice, freeing a clone slot. Unknown ids return 404 with errorCode `voice_not_found`. Deletion returns 409 while a clone is still processing. If it returns 503, the voice is retained; retry after the provider recovers.
      *
      * @param {string} id - The Sync UUID returned as id when the voice was cloned.
      * @param {Voices.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link Sync.UnauthorizedError}
      * @throws {@link Sync.NotFoundError}
+     * @throws {@link Sync.ConflictError}
+     * @throws {@link Sync.ServiceUnavailableError}
      * @throws {@link Sync.InternalServerError}
      *
      * @example
@@ -396,8 +407,8 @@ export class Voices {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.4.0",
-                "User-Agent": "@sync.so/sdk/0.4.0",
+                "X-Fern-SDK-Version": "0.5.0",
+                "User-Agent": "@sync.so/sdk/0.5.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -422,6 +433,13 @@ export class Voices {
                     );
                 case 404:
                     throw new Sync.NotFoundError(_response.error.body as Sync.GenerationError, _response.rawResponse);
+                case 409:
+                    throw new Sync.ConflictError(_response.error.body as Sync.GenerationError, _response.rawResponse);
+                case 503:
+                    throw new Sync.ServiceUnavailableError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
                 case 500:
                     throw new Sync.InternalServerError(
                         _response.error.body as Sync.GenerationError,

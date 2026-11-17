@@ -16,4 +16,10 @@ export interface DubDto {
     sourceLang?: Sync.DubSourceLanguage;
     /** [DEPRECATED] Ignored. Speakers are detected automatically. */
     numSpeakers?: number;
+    /** Voice cloning strength from 1 to 10. Higher values preserve more of the source voice. Omit to use the provider default. */
+    cloningStrength?: number;
+    /** Finite start time in seconds, within the source video. Defaults to 0. The output and billing cover only the selected range. Invalid ranges return 422 generation_input_trim_invalid. */
+    startTime?: number;
+    /** Finite end time in seconds. Must be after startTime and within the source video. Defaults to the end of the video. */
+    endTime?: number;
 }

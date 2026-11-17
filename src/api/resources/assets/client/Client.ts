@@ -59,7 +59,7 @@ export class Assets {
         request: Sync.ListAssetsRequest = {},
         requestOptions?: Assets.RequestOptions,
     ): Promise<core.WithRawResponse<Sync.PaginatedAssetsResponse>> {
-        const { projectId, limit, cursor, searchQuery, sortBy, types } = request;
+        const { projectId, limit, cursor, searchQuery, sortBy, types, audioSource } = request;
         const _queryParams: Record<string, string | string[] | object | object[] | null> = {};
         if (projectId != null) {
             _queryParams["projectId"] = projectId;
@@ -85,6 +85,10 @@ export class Assets {
             _queryParams["types"] = toJson(types);
         }
 
+        if (audioSource != null) {
+            _queryParams["audioSource"] = audioSource;
+        }
+
         const _response = await (this._options.fetcher ?? core.fetcher)({
             url: urlJoin(
                 (await core.Supplier.get(this._options.baseUrl)) ??
@@ -96,8 +100,8 @@ export class Assets {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.4.0",
-                "User-Agent": "@sync.so/sdk/0.4.0",
+                "X-Fern-SDK-Version": "0.5.0",
+                "User-Agent": "@sync.so/sdk/0.5.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -153,6 +157,403 @@ export class Assets {
     }
 
     /**
+     * Count the assets visible to your organization after applying the filters.
+     *
+     * @param {Sync.CountAssetsRequest} request
+     * @param {Assets.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link Sync.UnauthorizedError}
+     * @throws {@link Sync.InternalServerError}
+     *
+     * @example
+     *     await client.assets.count()
+     */
+    public count(
+        request: Sync.CountAssetsRequest = {},
+        requestOptions?: Assets.RequestOptions,
+    ): core.HttpResponsePromise<number> {
+        return core.HttpResponsePromise.fromPromise(this.__count(request, requestOptions));
+    }
+
+    private async __count(
+        request: Sync.CountAssetsRequest = {},
+        requestOptions?: Assets.RequestOptions,
+    ): Promise<core.WithRawResponse<number>> {
+        const { projectId, userId, searchQuery, types, audioSource } = request;
+        const _queryParams: Record<string, string | string[] | object | object[] | null> = {};
+        if (projectId != null) {
+            _queryParams["projectId"] = projectId;
+        }
+
+        if (userId != null) {
+            _queryParams["userId"] = userId;
+        }
+
+        if (searchQuery != null) {
+            _queryParams["searchQuery"] = searchQuery;
+        }
+
+        if (types != null) {
+            _queryParams["types"] = toJson(types);
+        }
+
+        if (audioSource != null) {
+            _queryParams["audioSource"] = audioSource;
+        }
+
+        const _response = await (this._options.fetcher ?? core.fetcher)({
+            url: urlJoin(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.SyncEnvironment.Default,
+                "/v2/assets/count",
+            ),
+            method: "GET",
+            headers: {
+                "X-Fern-Language": "JavaScript",
+                "X-Fern-SDK-Name": "@sync.so/sdk",
+                "X-Fern-SDK-Version": "0.5.0",
+                "User-Agent": "@sync.so/sdk/0.5.0",
+                "X-Fern-Runtime": core.RUNTIME.type,
+                "X-Fern-Runtime-Version": core.RUNTIME.version,
+                ...(await this._getCustomAuthorizationHeaders()),
+                ...requestOptions?.headers,
+            },
+            contentType: "application/json",
+            queryParameters: _queryParams,
+            requestType: "json",
+            timeoutMs: requestOptions?.timeoutInSeconds != null ? requestOptions.timeoutInSeconds * 1000 : 60000,
+            maxRetries: requestOptions?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+        });
+        if (_response.ok) {
+            return { data: _response.body as number, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 401:
+                    throw new Sync.UnauthorizedError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 500:
+                    throw new Sync.InternalServerError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                default:
+                    throw new errors.SyncError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        switch (_response.error.reason) {
+            case "non-json":
+                throw new errors.SyncError({
+                    statusCode: _response.error.statusCode,
+                    body: _response.error.rawBody,
+                    rawResponse: _response.rawResponse,
+                });
+            case "timeout":
+                throw new errors.SyncTimeoutError("Timeout exceeded when calling GET /v2/assets/count.");
+            case "unknown":
+                throw new errors.SyncError({
+                    message: _response.error.errorMessage,
+                    rawResponse: _response.rawResponse,
+                });
+        }
+    }
+
+    /**
+     * Retrieve multiple assets by ID. Assets you cannot access are omitted from the response.
+     *
+     * @param {Sync.BatchGetAssetsRequest} request
+     * @param {Assets.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link Sync.BadRequestError}
+     * @throws {@link Sync.UnauthorizedError}
+     * @throws {@link Sync.InternalServerError}
+     *
+     * @example
+     *     await client.assets.getMany({
+     *         ids: "ids"
+     *     })
+     */
+    public getMany(
+        request: Sync.BatchGetAssetsRequest,
+        requestOptions?: Assets.RequestOptions,
+    ): core.HttpResponsePromise<Sync.Asset[]> {
+        return core.HttpResponsePromise.fromPromise(this.__getMany(request, requestOptions));
+    }
+
+    private async __getMany(
+        request: Sync.BatchGetAssetsRequest,
+        requestOptions?: Assets.RequestOptions,
+    ): Promise<core.WithRawResponse<Sync.Asset[]>> {
+        const _response = await (this._options.fetcher ?? core.fetcher)({
+            url: urlJoin(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.SyncEnvironment.Default,
+                "/v2/assets/batch",
+            ),
+            method: "POST",
+            headers: {
+                "X-Fern-Language": "JavaScript",
+                "X-Fern-SDK-Name": "@sync.so/sdk",
+                "X-Fern-SDK-Version": "0.5.0",
+                "User-Agent": "@sync.so/sdk/0.5.0",
+                "X-Fern-Runtime": core.RUNTIME.type,
+                "X-Fern-Runtime-Version": core.RUNTIME.version,
+                ...(await this._getCustomAuthorizationHeaders()),
+                ...requestOptions?.headers,
+            },
+            contentType: "application/json",
+            requestType: "json",
+            body: request,
+            timeoutMs: requestOptions?.timeoutInSeconds != null ? requestOptions.timeoutInSeconds * 1000 : 60000,
+            maxRetries: requestOptions?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+        });
+        if (_response.ok) {
+            return { data: _response.body as Sync.Asset[], rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 400:
+                    throw new Sync.BadRequestError(_response.error.body as Sync.GenerationError, _response.rawResponse);
+                case 401:
+                    throw new Sync.UnauthorizedError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 500:
+                    throw new Sync.InternalServerError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                default:
+                    throw new errors.SyncError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        switch (_response.error.reason) {
+            case "non-json":
+                throw new errors.SyncError({
+                    statusCode: _response.error.statusCode,
+                    body: _response.error.rawBody,
+                    rawResponse: _response.rawResponse,
+                });
+            case "timeout":
+                throw new errors.SyncTimeoutError("Timeout exceeded when calling POST /v2/assets/batch.");
+            case "unknown":
+                throw new errors.SyncError({
+                    message: _response.error.errorMessage,
+                    rawResponse: _response.rawResponse,
+                });
+        }
+    }
+
+    /**
+     * Get a URL for downloading an asset. The response body is a plain-text URL. Fetch that URL separately; do not send your API key to it.
+     *
+     * @param {Sync.AssetId} id
+     * @param {Assets.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link Sync.UnauthorizedError}
+     * @throws {@link Sync.NotFoundError}
+     * @throws {@link Sync.InternalServerError}
+     *
+     * @example
+     *     await client.assets.getDownloadUrl("id")
+     */
+    public getDownloadUrl(id: Sync.AssetId, requestOptions?: Assets.RequestOptions): core.HttpResponsePromise<string> {
+        return core.HttpResponsePromise.fromPromise(this.__getDownloadUrl(id, requestOptions));
+    }
+
+    private async __getDownloadUrl(
+        id: Sync.AssetId,
+        requestOptions?: Assets.RequestOptions,
+    ): Promise<core.WithRawResponse<string>> {
+        const _response = await (this._options.fetcher ?? core.fetcher)({
+            url: urlJoin(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.SyncEnvironment.Default,
+                `/v2/assets/${encodeURIComponent(id)}/download`,
+            ),
+            method: "GET",
+            headers: {
+                "X-Fern-Language": "JavaScript",
+                "X-Fern-SDK-Name": "@sync.so/sdk",
+                "X-Fern-SDK-Version": "0.5.0",
+                "User-Agent": "@sync.so/sdk/0.5.0",
+                "X-Fern-Runtime": core.RUNTIME.type,
+                "X-Fern-Runtime-Version": core.RUNTIME.version,
+                ...(await this._getCustomAuthorizationHeaders()),
+                ...requestOptions?.headers,
+            },
+            contentType: "application/json",
+            requestType: "json",
+            responseType: "text",
+            timeoutMs: requestOptions?.timeoutInSeconds != null ? requestOptions.timeoutInSeconds * 1000 : 60000,
+            maxRetries: requestOptions?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+        });
+        if (_response.ok) {
+            return { data: _response.body as string, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 401:
+                    throw new Sync.UnauthorizedError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 404:
+                    throw new Sync.NotFoundError(_response.error.body as Sync.GenerationError, _response.rawResponse);
+                case 500:
+                    throw new Sync.InternalServerError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                default:
+                    throw new errors.SyncError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        switch (_response.error.reason) {
+            case "non-json":
+                throw new errors.SyncError({
+                    statusCode: _response.error.statusCode,
+                    body: _response.error.rawBody,
+                    rawResponse: _response.rawResponse,
+                });
+            case "timeout":
+                throw new errors.SyncTimeoutError("Timeout exceeded when calling GET /v2/assets/{id}/download.");
+            case "unknown":
+                throw new errors.SyncError({
+                    message: _response.error.errorMessage,
+                    rawResponse: _response.rawResponse,
+                });
+        }
+    }
+
+    /**
+     * Find the newest live asset registered with the same API key, SHA-256 digest, and type. Reuse its id instead of uploading the file again. Assets registered with another API key do not match, even within the same organization. Returns asset null when no asset matches.
+     *
+     * @param {Sync.FindUploadedAssetRequest} request
+     * @param {Assets.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link Sync.BadRequestError}
+     * @throws {@link Sync.UnauthorizedError}
+     * @throws {@link Sync.InternalServerError}
+     *
+     * @example
+     *     await client.assets.findUploaded({
+     *         contentSha256: "contentSha256",
+     *         type: "AUDIO"
+     *     })
+     */
+    public findUploaded(
+        request: Sync.FindUploadedAssetRequest,
+        requestOptions?: Assets.RequestOptions,
+    ): core.HttpResponsePromise<Sync.FindUploadedAssetResponse> {
+        return core.HttpResponsePromise.fromPromise(this.__findUploaded(request, requestOptions));
+    }
+
+    private async __findUploaded(
+        request: Sync.FindUploadedAssetRequest,
+        requestOptions?: Assets.RequestOptions,
+    ): Promise<core.WithRawResponse<Sync.FindUploadedAssetResponse>> {
+        const { contentSha256, type: type_ } = request;
+        const _queryParams: Record<string, string | string[] | object | object[] | null> = {};
+        _queryParams["contentSha256"] = contentSha256;
+        _queryParams["type"] = type_;
+        const _response = await (this._options.fetcher ?? core.fetcher)({
+            url: urlJoin(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.SyncEnvironment.Default,
+                "/v2/assets/uploaded",
+            ),
+            method: "GET",
+            headers: {
+                "X-Fern-Language": "JavaScript",
+                "X-Fern-SDK-Name": "@sync.so/sdk",
+                "X-Fern-SDK-Version": "0.5.0",
+                "User-Agent": "@sync.so/sdk/0.5.0",
+                "X-Fern-Runtime": core.RUNTIME.type,
+                "X-Fern-Runtime-Version": core.RUNTIME.version,
+                ...(await this._getCustomAuthorizationHeaders()),
+                ...requestOptions?.headers,
+            },
+            contentType: "application/json",
+            queryParameters: _queryParams,
+            requestType: "json",
+            timeoutMs: requestOptions?.timeoutInSeconds != null ? requestOptions.timeoutInSeconds * 1000 : 60000,
+            maxRetries: requestOptions?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+        });
+        if (_response.ok) {
+            return { data: _response.body as Sync.FindUploadedAssetResponse, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 400:
+                    throw new Sync.BadRequestError(_response.error.body as Sync.GenerationError, _response.rawResponse);
+                case 401:
+                    throw new Sync.UnauthorizedError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 500:
+                    throw new Sync.InternalServerError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                default:
+                    throw new errors.SyncError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        switch (_response.error.reason) {
+            case "non-json":
+                throw new errors.SyncError({
+                    statusCode: _response.error.statusCode,
+                    body: _response.error.rawBody,
+                    rawResponse: _response.rawResponse,
+                });
+            case "timeout":
+                throw new errors.SyncTimeoutError("Timeout exceeded when calling GET /v2/assets/uploaded.");
+            case "unknown":
+                throw new errors.SyncError({
+                    message: _response.error.errorMessage,
+                    rawResponse: _response.rawResponse,
+                });
+        }
+    }
+
+    /**
      * Retrieve a specific asset by ID.
      *
      * @param {Sync.AssetId} id
@@ -184,8 +585,8 @@ export class Assets {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.4.0",
-                "User-Agent": "@sync.so/sdk/0.4.0",
+                "X-Fern-SDK-Version": "0.5.0",
+                "User-Agent": "@sync.so/sdk/0.5.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -242,7 +643,7 @@ export class Assets {
     }
 
     /**
-     * Request a presigned URL to upload a local file. PUT the file bytes to the returned uploadUrl with the same Content-Type, then register the file as an asset via POST /v2/assets using the returned url. Single uploads are capped at 5GB.
+     * Request a presigned URL to upload a local file. PUT the file bytes to the returned uploadUrl with the same Content-Type, then register the file as an asset via POST /v2/assets using the returned url. Single uploads are capped at 5 GiB (5,368,709,120 bytes).
      *
      * @param {Sync.CreateAssetUploadRequest} request
      * @param {Assets.RequestOptions} requestOptions - Request-specific configuration.
@@ -281,8 +682,8 @@ export class Assets {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.4.0",
-                "User-Agent": "@sync.so/sdk/0.4.0",
+                "X-Fern-SDK-Version": "0.5.0",
+                "User-Agent": "@sync.so/sdk/0.5.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -349,12 +750,18 @@ export class Assets {
      *
      * projectId is optional. When provided it must reference a project in your organization — a stale or foreign id is rejected with a 422 and errorCode project_not_found; omit the field if you don't need the asset attached to a project.
      *
+     * A link to a single TikTok, Instagram, Facebook, or YouTube video is imported instead of registered. The response is 409 import_in_progress until the video is downloaded; send the same request again after Retry-After to get the imported VIDEO asset, named after the video. A failed import returns 422 import_failed; check the message or upload the file instead. A 429 means the concurrent or daily import limit was reached; follow Retry-After. Link imports return 403 import_not_enabled when unavailable for your account and 503 import_unavailable when temporarily unavailable. See [Asset Uploads](/docs/developer-guides/asset-uploads#import-a-social-video-link).
+     *
      * @param {Sync.CreateAssetRequest} request
      * @param {Assets.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link Sync.BadRequestError}
      * @throws {@link Sync.UnauthorizedError}
+     * @throws {@link Sync.ForbiddenError}
+     * @throws {@link Sync.LinkImportInProgressError}
      * @throws {@link Sync.UnprocessableEntityError}
+     * @throws {@link Sync.LinkImportTooManyRequestsError}
+     * @throws {@link Sync.ServiceUnavailableError}
      * @throws {@link Sync.InternalServerError}
      *
      * @example
@@ -386,8 +793,8 @@ export class Assets {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.4.0",
-                "User-Agent": "@sync.so/sdk/0.4.0",
+                "X-Fern-SDK-Version": "0.5.0",
+                "User-Agent": "@sync.so/sdk/0.5.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -413,8 +820,25 @@ export class Assets {
                         _response.error.body as Sync.GenerationError,
                         _response.rawResponse,
                     );
+                case 403:
+                    throw new Sync.ForbiddenError(_response.error.body as Sync.GenerationError, _response.rawResponse);
+                case 409:
+                    throw new Sync.LinkImportInProgressError(
+                        _response.error.body as Sync.LinkImportError,
+                        _response.rawResponse,
+                    );
                 case 422:
                     throw new Sync.UnprocessableEntityError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 429:
+                    throw new Sync.LinkImportTooManyRequestsError(
+                        _response.error.body as Sync.LinkImportError,
+                        _response.rawResponse,
+                    );
+                case 503:
+                    throw new Sync.ServiceUnavailableError(
                         _response.error.body as Sync.GenerationError,
                         _response.rawResponse,
                     );
@@ -491,8 +915,8 @@ export class Assets {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.4.0",
-                "User-Agent": "@sync.so/sdk/0.4.0",
+                "X-Fern-SDK-Version": "0.5.0",
+                "User-Agent": "@sync.so/sdk/0.5.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -593,8 +1017,8 @@ export class Assets {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.4.0",
-                "User-Agent": "@sync.so/sdk/0.4.0",
+                "X-Fern-SDK-Version": "0.5.0",
+                "User-Agent": "@sync.so/sdk/0.5.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),

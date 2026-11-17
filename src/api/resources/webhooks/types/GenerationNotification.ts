@@ -19,10 +19,14 @@ export interface GenerationNotification {
     options?: Sync.GenerationOptions;
     /** url of the generated output media. Null unless the generation completed. */
     outputUrl: string | null;
+    /** Dubbed audio URL. Omitted without dubParams; null until the dubbed track is available. */
+    dubAudioUrl?: string | null;
+    /** Reusable AUDIO asset for the dubbed track. Omitted without dubParams; null until available or when retention settings or a custom output bucket prevent saving it. */
+    dubAudioAssetId?: Sync.AssetId | null;
     /** url of the speech synthesized from a text input. Present only for generations that used a text input. */
     synthesizedAudioUrl?: string;
-    /** Human-readable error message if the generation failed or was rejected, otherwise null. */
+    /** Human-readable error message if the generation failed, was rejected or lip-synced nothing (NO_OP), otherwise null. */
     error: string | null;
-    /** Machine-readable error code if the generation failed or was rejected, otherwise null. See [Error Handling](/developer-guides/error-handling) and GET /v2/errors. */
+    /** Machine-readable error code if the generation failed, was rejected or lip-synced nothing (NO_OP), otherwise null. See [Error Handling](/docs/developer-guides/error-handling) and GET /v2/errors. */
     errorCode: string | null;
 }

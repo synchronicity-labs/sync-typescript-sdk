@@ -5,19 +5,19 @@
 import * as Sync from "../../../index";
 
 export interface GenerationOptions {
-    /** Defines how to handle duration mismatches between video and audio inputs. Ignored for image inputs (images have no intrinsic duration). See the [Sync Mode](/developer-guides/sync-mode) guide for the full behavior matrix. */
+    /** Defines how to handle duration mismatches between video and audio inputs. Ignored for image inputs (images have no intrinsic duration). See the [Sync Mode](/docs/developer-guides/sync-mode) guide for the full behavior matrix. */
     sync_mode?: Sync.SyncMode;
     /** edit region for the model. only works with react-1. defaults to face, which affects lipsync + emotions in the face region. Available options are lips/face/head. When head is selected, model generates natural talking head movements along with emotions + lipsync. */
     model_mode?: Sync.ModelMode;
     /** Prompt for the generation. React-1 accepts emotion prompts; the appearance model accepts a free-form appearance edit instruction. */
     prompt?: string;
-    /** Reference image URLs for appearance editing generations. */
+    /** Reference image URLs for appearance editing generations. At most 10. */
     prompt_image_uris?: string[];
     /** Prompt for image-to-video generation. */
     i2v_prompt?: string;
     /** option to control how expressive lipsync can be. 0 -> least expressive, 1 -> most expressive. default:0.5 */
     temperature?: number;
-    /** Active speaker detection configuration. When enabled, automatically detects and applies lipsync only to the active speaker in videos with multiple people. Not supported for image inputs. */
+    /** Active speaker detection configuration. If the whole field is omitted on a supported video dubbing request, Sync enables auto-detection. When this object is present, auto_detect defaults to false unless you set it to true. Not supported for image inputs. */
     active_speaker_detection?: Sync.ActiveSpeaker;
     /** Whether to detect occlusion during generation, slows down generation speed. */
     occlusion_detection_enabled?: boolean;

@@ -6,6 +6,7 @@ import * as environments from "./environments";
 import * as core from "./core";
 import { Account } from "./api/resources/account/client/Client";
 import { Assets } from "./api/resources/assets/client/Client";
+import { AudioTrims } from "./api/resources/audioTrims/client/Client";
 import { Batch } from "./api/resources/batch/client/Client";
 import { DialogueEdits } from "./api/resources/dialogueEdits/client/Client";
 import { Errors } from "./api/resources/errors/client/Client";
@@ -42,6 +43,7 @@ export declare namespace SyncClient {
 export class SyncClient {
     protected _account: Account | undefined;
     protected _assets: Assets | undefined;
+    protected _audioTrims: AudioTrims | undefined;
     protected _batch: Batch | undefined;
     protected _dialogueEdits: DialogueEdits | undefined;
     protected _errors: Errors | undefined;
@@ -62,6 +64,10 @@ export class SyncClient {
 
     public get assets(): Assets {
         return (this._assets ??= new Assets(this._options));
+    }
+
+    public get audioTrims(): AudioTrims {
+        return (this._audioTrims ??= new AudioTrims(this._options));
     }
 
     public get batch(): Batch {

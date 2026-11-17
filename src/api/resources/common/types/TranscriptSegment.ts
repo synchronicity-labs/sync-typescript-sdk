@@ -12,4 +12,6 @@ export interface TranscriptSegment {
     id: string;
     /** The words in the segment, in order. */
     words: Sync.TranscriptWord[];
+    /** Reasons to review this segment's speaker label. An empty list means no warning was detected. These flags do not guarantee speaker accuracy. Returned by transcription reads and ignored on dialogue-edit submission. */
+    speakerLabelFlags?: Sync.TranscriptSpeakerLabelFlag[];
 }

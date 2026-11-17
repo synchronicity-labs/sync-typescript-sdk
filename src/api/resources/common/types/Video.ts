@@ -11,12 +11,12 @@ export interface Video {
     type: "video";
     /** Optional reference identifier for segment definitions. Use this when a segment needs to refer back to a specific visual input item. */
     refId?: string;
-    /** URL of the video to be used for generation. Either `url` or `assetId` must be provided. */
+    /** Absolute HTTP or HTTPS URL of the video to be used for generation. Either `url` or `assetId` must be provided. If your organization has a configured custom output bucket, an s3:// URL in that bucket is supported. A TikTok, Instagram, Facebook, or YouTube video link is imported first. */
     url?: string;
     /** ID of a video asset from your media library. Either `url` or `assetId` must be provided. */
     assetId?: Sync.AssetId;
-    /** [DEPRECATED] Use the top-level [segments](/api-reference/api/generate-api/create#request.body.segments) array instead for multi-segment support. */
+    /** [DEPRECATED] Use the top-level [segments](/docs/api-reference/api/generate-api/create#request.body.segments) array instead for multi-segment support. */
     segments_secs?: Sync.SegmentSecs;
-    /** [DEPRECATED] Use the top-level [segments](/api-reference/api/generate-api/create#request.body.segments) array instead for multi-segment support. frames 100 and 200 of the video */
+    /** [DEPRECATED] Use the top-level [segments](/docs/api-reference/api/generate-api/create#request.body.segments) array instead for multi-segment support. frames 100 and 200 of the video */
     segments_frames?: Sync.SegmentFrames;
 }

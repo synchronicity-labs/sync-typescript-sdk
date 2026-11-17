@@ -8,7 +8,7 @@
  */
 export interface GetGenerationRequest {
     /**
-     * When true, long-poll: hold the request open until the generation reaches a terminal status (COMPLETED/FAILED/REJECTED) or the timeout elapses, then return the latest state. Waits are short (10s max) — treat this as a convenience for jobs about to finish, and poll again (the response includes a `Retry-After: 2` header) or use a webhook for longer jobs. wait=true responses also carry `X-Sync-Wait-Mode: long_poll` and `X-Sync-Wait-Timeout-Seconds` headers. Cannot be combined with include=progress.
+     * When true, long-poll: hold the request open until the generation reaches a terminal status (COMPLETED/NO_OP/FAILED/REJECTED) or the timeout elapses, then return the latest state. Waits are short (10s max) — treat this as a convenience for jobs about to finish, and poll again (the response includes a `Retry-After: 2` header) or use a webhook for longer jobs. wait=true responses also carry `X-Sync-Wait-Mode: long_poll` and `X-Sync-Wait-Timeout-Seconds` headers. Cannot be combined with include=progress.
      */
     wait?: boolean;
     /**
@@ -16,7 +16,7 @@ export interface GetGenerationRequest {
      */
     timeout?: number;
     /**
-     * Comma-separated extra fields to include. include=progress adds a progress_percent field (fetched live from the inference service).
+     * Comma-separated extra fields to include. include=progress adds a `progress` object with the render stage, measured progress and the expected finish time. Works for generations created through the API as well as in sync's own apps.
      */
     include?: string;
 }

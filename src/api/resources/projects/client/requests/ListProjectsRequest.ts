@@ -17,7 +17,7 @@ export interface ListProjectsRequest {
      */
     limit?: number;
     /**
-     * Cursor for pagination.
+     * The nextCursor UUID returned by the previous page. A non-UUID value returns 400.
      */
     cursor?: string;
     /**

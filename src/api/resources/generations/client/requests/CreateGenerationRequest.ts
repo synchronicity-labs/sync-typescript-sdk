@@ -16,7 +16,7 @@ export interface CreateGenerationRequest {
     input?: Sync.Input[];
     /** Optional generation options, encoded as a JSON string in multipart requests. */
     options?: Sync.GenerationOptions;
-    /** Optional segment definitions, encoded as a JSON string in multipart requests. */
+    /** Optional segment definitions, encoded as a JSON string in multipart requests. Each audioInput.refId must name an audio or text input sent in input by url, assetId, or text. An uploaded audio file has no refId, so segments can't reference it. */
     segments?: Sync.GenerationSegment[];
     /** Optional audio input that plays over the whole finished output, encoded as a JSON string in multipart requests, for example `{"refId":"dub"}`. Use with segments. The refId must name an audio input sent by url or assetId: an uploaded audio file has no refId. */
     outputAudio?: Sync.OutputAudio;

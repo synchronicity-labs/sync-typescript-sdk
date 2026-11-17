@@ -10,6 +10,6 @@ export interface CreateAssetUploadRequest {
     fileName: string;
     /** The MIME content type of the file (e.g. video/mp4). */
     contentType: string;
-    /** The size of the file in bytes. Single uploads are capped at 5GB. */
+    /** The size of the file in bytes. Single uploads are capped at 5 GiB (5,368,709,120 bytes). */
     size: number;
 }

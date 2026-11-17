@@ -3,7 +3,7 @@
  */
 
 export interface AccountCredits {
-    /** Credits that can be spent now: the balance minus credits reserved by in-flight jobs. 1 credit = $0.01. */
+    /** Credits currently available for generation usage. */
     available: number;
     /** Credits the plan grants each billing period. */
     periodGrant: number;

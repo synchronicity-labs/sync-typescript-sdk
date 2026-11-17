@@ -33,7 +33,7 @@ export class Errors {
     constructor(protected readonly _options: Errors.Options = {}) {}
 
     /**
-     * Returns the full catalog of machine-readable error codes — each with a human-readable message and a suggested fix. It covers generation failures plus the coded errors returned by the assets, voices, and TTS endpoints (e.g. project_not_found, voice_not_found, asset_forbidden). This endpoint is unauthenticated. Pair it with the errorCode field returned on a failed generation or on a coded 4xx/5xx response so an agent can look up what went wrong and how to correct it without hard-coding error strings.
+     * Returns the full catalog of machine-readable error codes — each with a human-readable message and a suggested fix. It covers generation failures plus the coded errors returned by the assets, voices, and TTS endpoints (e.g. project_not_found, voice_not_found, asset_forbidden) and by TikTok, Instagram, Facebook, and YouTube link imports (e.g. import_in_progress, import_failed). This endpoint is unauthenticated. Pair it with the errorCode field returned on a failed generation or on a coded 4xx/5xx response so an agent can look up what went wrong and how to correct it without hard-coding error strings.
      *
      * @param {Errors.RequestOptions} requestOptions - Request-specific configuration.
      *
@@ -60,8 +60,8 @@ export class Errors {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.4.0",
-                "User-Agent": "@sync.so/sdk/0.4.0",
+                "X-Fern-SDK-Version": "0.5.0",
+                "User-Agent": "@sync.so/sdk/0.5.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),

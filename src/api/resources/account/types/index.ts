@@ -1,4 +1,6 @@
 export * from "./AccountOverview";
+export * from "./AccountOrganizations";
+export * from "./AccountOrganizationListItem";
 export * from "./AccountUser";
 export * from "./AccountOrganization";
 export * from "./AccountCredentialType";

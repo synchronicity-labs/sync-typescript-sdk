@@ -35,19 +35,29 @@ export class Account {
     /**
      * Get the account, plan, limits and balance behind these credentials. Call it before submitting work to check plan limits and remaining credits or free allowance, and after a 402, 403 or 429 to decide how to recover: `billingModel` says whether to top up credits (`credits`), pay or update the payment method (`usage`), upgrade (`free`) or contact sync. (`enterprise`). Send people to `billingUrl` for anything that needs a payment.
      *
+     * @param {Sync.GetAccountRequest} request
      * @param {Account.RequestOptions} requestOptions - Request-specific configuration.
      *
+     * @throws {@link Sync.BadRequestError}
      * @throws {@link Sync.UnauthorizedError}
+     * @throws {@link Sync.ForbiddenError}
      * @throws {@link Sync.InternalServerError}
      *
      * @example
      *     await client.account.get()
      */
-    public get(requestOptions?: Account.RequestOptions): core.HttpResponsePromise<Sync.AccountOverview> {
-        return core.HttpResponsePromise.fromPromise(this.__get(requestOptions));
+    public get(
+        request: Sync.GetAccountRequest = {},
+        requestOptions?: Account.RequestOptions,
+    ): core.HttpResponsePromise<Sync.AccountOverview> {
+        return core.HttpResponsePromise.fromPromise(this.__get(request, requestOptions));
     }
 
-    private async __get(requestOptions?: Account.RequestOptions): Promise<core.WithRawResponse<Sync.AccountOverview>> {
+    private async __get(
+        request: Sync.GetAccountRequest = {},
+        requestOptions?: Account.RequestOptions,
+    ): Promise<core.WithRawResponse<Sync.AccountOverview>> {
+        const { "x-sync-organization-id": organizationId } = request;
         const _response = await (this._options.fetcher ?? core.fetcher)({
             url: urlJoin(
                 (await core.Supplier.get(this._options.baseUrl)) ??
@@ -59,10 +69,11 @@ export class Account {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.4.0",
-                "User-Agent": "@sync.so/sdk/0.4.0",
+                "X-Fern-SDK-Version": "0.5.0",
+                "User-Agent": "@sync.so/sdk/0.5.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
+                "x-sync-organization-id": organizationId != null ? organizationId : undefined,
                 ...(await this._getCustomAuthorizationHeaders()),
                 ...requestOptions?.headers,
             },
@@ -78,11 +89,15 @@ export class Account {
 
         if (_response.error.reason === "status-code") {
             switch (_response.error.statusCode) {
+                case 400:
+                    throw new Sync.BadRequestError(_response.error.body as Sync.GenerationError, _response.rawResponse);
                 case 401:
                     throw new Sync.UnauthorizedError(
                         _response.error.body as Sync.GenerationError,
                         _response.rawResponse,
                     );
+                case 403:
+                    throw new Sync.ForbiddenError(_response.error.body as Sync.GenerationError, _response.rawResponse);
                 case 500:
                     throw new Sync.InternalServerError(
                         _response.error.body as Sync.GenerationError,
@@ -106,6 +121,97 @@ export class Account {
                 });
             case "timeout":
                 throw new errors.SyncTimeoutError("Timeout exceeded when calling GET /v2/account.");
+            case "unknown":
+                throw new errors.SyncError({
+                    message: _response.error.errorMessage,
+                    rawResponse: _response.rawResponse,
+                });
+        }
+    }
+
+    /**
+     * List the organizations these credentials can access, current one first. An API key lists only its own organization. An OAuth connection lists the organizations selected when it was connected. Send an ID as x-sync-organization-id on subsequent requests to select that organization. An inaccessible organization returns 403; an invalid ID returns 400.
+     *
+     * @param {Sync.ListAccountOrganizationsRequest} request
+     * @param {Account.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link Sync.BadRequestError}
+     * @throws {@link Sync.UnauthorizedError}
+     * @throws {@link Sync.ForbiddenError}
+     *
+     * @example
+     *     await client.account.listOrganizations()
+     */
+    public listOrganizations(
+        request: Sync.ListAccountOrganizationsRequest = {},
+        requestOptions?: Account.RequestOptions,
+    ): core.HttpResponsePromise<Sync.AccountOrganizations> {
+        return core.HttpResponsePromise.fromPromise(this.__listOrganizations(request, requestOptions));
+    }
+
+    private async __listOrganizations(
+        request: Sync.ListAccountOrganizationsRequest = {},
+        requestOptions?: Account.RequestOptions,
+    ): Promise<core.WithRawResponse<Sync.AccountOrganizations>> {
+        const { "x-sync-organization-id": organizationId } = request;
+        const _response = await (this._options.fetcher ?? core.fetcher)({
+            url: urlJoin(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.SyncEnvironment.Default,
+                "/v2/account/organizations",
+            ),
+            method: "GET",
+            headers: {
+                "X-Fern-Language": "JavaScript",
+                "X-Fern-SDK-Name": "@sync.so/sdk",
+                "X-Fern-SDK-Version": "0.5.0",
+                "User-Agent": "@sync.so/sdk/0.5.0",
+                "X-Fern-Runtime": core.RUNTIME.type,
+                "X-Fern-Runtime-Version": core.RUNTIME.version,
+                "x-sync-organization-id": organizationId != null ? organizationId : undefined,
+                ...(await this._getCustomAuthorizationHeaders()),
+                ...requestOptions?.headers,
+            },
+            contentType: "application/json",
+            requestType: "json",
+            timeoutMs: requestOptions?.timeoutInSeconds != null ? requestOptions.timeoutInSeconds * 1000 : 60000,
+            maxRetries: requestOptions?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+        });
+        if (_response.ok) {
+            return { data: _response.body as Sync.AccountOrganizations, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 400:
+                    throw new Sync.BadRequestError(_response.error.body as Sync.GenerationError, _response.rawResponse);
+                case 401:
+                    throw new Sync.UnauthorizedError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 403:
+                    throw new Sync.ForbiddenError(_response.error.body as Sync.GenerationError, _response.rawResponse);
+                default:
+                    throw new errors.SyncError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        switch (_response.error.reason) {
+            case "non-json":
+                throw new errors.SyncError({
+                    statusCode: _response.error.statusCode,
+                    body: _response.error.rawBody,
+                    rawResponse: _response.rawResponse,
+                });
+            case "timeout":
+                throw new errors.SyncTimeoutError("Timeout exceeded when calling GET /v2/account/organizations.");
             case "unknown":
                 throw new errors.SyncError({
                     message: _response.error.errorMessage,

@@ -12,9 +12,9 @@ export interface CreateTranscriptionDto {
     sourceVideoUrl?: string;
     /** URL of audio already extracted from the source, hosted in sync. storage. Skips the server-side audio extraction. Provide exactly one of sourceVideoUrl or sourceAudioUrl. */
     sourceAudioUrl?: string;
-    /** Start of the window to transcribe, in milliseconds from the start of the source. Defaults to 0. */
+    /** Start of the window to transcribe, in milliseconds from the start of the source. Defaults to 0. A start at or past the end of the source video returns a 422 naming startMs. */
     startMs?: number;
-    /** End of the window to transcribe, in milliseconds from the start of the source. Omit to transcribe to the end. The window cannot exceed 60 minutes. */
+    /** End of the window to transcribe, in milliseconds from the start of the source. Omit to transcribe to the end. The window cannot exceed 60 minutes. An end past the end of the source is clamped to it, and the job reports the end it used in sourceEndMs. */
     endMs?: number;
     /** Refuse the source if it is longer than this many seconds. Useful when a later step, such as a dialogue edit (10 minute window), cannot consume a longer transcript. Cannot exceed the endpoint ceiling of 3600 seconds. */
     maxSourceSeconds?: number;

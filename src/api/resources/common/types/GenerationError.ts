@@ -17,12 +17,16 @@ export interface GenerationError {
     field?: string;
     /** Link to the documentation page for the failing operation. */
     docsUrl?: string;
+    /** Billing page for resolving a payment, plan, or allowance issue, when applicable. */
+    billingUrl?: string;
     /** Present on unexpected 500 responses. Include it when contacting support so the failing request can be located directly. */
     requestId?: string;
     /** Original generation ID when available for an uncertain keyed submission or a DUPLICATE_SUBMISSION. Poll this ID; do not create another action to bypass IDEMPOTENCY_OUTCOME_UNKNOWN. */
     generationId?: Sync.GenerationId;
     /** For dialogue_edit_removal_too_large: the section to change, when it can be identified. Create a new dialogue edit preview before submitting again. */
     dialogueEditSection?: Sync.DialogueEditRetimeFailureSection;
+    /** For voice_clone_pending, the pending clone ID. Poll GET /v2/voices/{voiceId} instead of submitting another clone. */
+    voiceId?: string;
     /** For batch creation, on dialogue edit refusals only: the 1-based line of the refused record, counting non-empty JSONL lines. With a `rows` body, line N is `rows[N-1]`. Other record errors name the line only in `message`. */
     lineNumber?: number;
 }

@@ -33,7 +33,7 @@ export class Transcriptions {
     constructor(protected readonly _options: Transcriptions.Options = {}) {}
 
     /**
-     * Starts a word-level transcription of a window of a video, the first step of a dialogue edit. Provide exactly one of `sourceVideoUrl` or `sourceAudioUrl`, both hosted in sync. storage (upload via `POST /v2/assets/upload`). Passing pre-extracted audio skips the server-side download and transcode. Poll `GET /v2/transcriptions/{id}` until `status` is `COMPLETED`, then pass the `transcript` and your edits to `POST /v2/dialogue-edits`. An identical source and window returns the existing job instead of starting a new one. Transcription is not billed.
+     * Starts a word-level transcription of a window of a video, the first step of a dialogue edit. Provide exactly one of `sourceVideoUrl` or `sourceAudioUrl`, both hosted in sync. storage (upload via `POST /v2/assets/upload`). Passing pre-extracted audio skips the server-side download and transcode. Poll `GET /v2/transcriptions/{id}` until `status` is `COMPLETED`, then pass the `transcript` and your edits to `POST /v2/dialogue-edits`. An identical source and window returns the existing job instead of starting a new one. An `endMs` past the end of the source is clamped to it, and the job echoes the effective end in `sourceEndMs`. Transcription is not billed.
      *
      * @param {Sync.CreateTranscriptionDto} request
      * @param {Transcriptions.RequestOptions} requestOptions - Request-specific configuration.
@@ -72,8 +72,8 @@ export class Transcriptions {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.4.0",
-                "User-Agent": "@sync.so/sdk/0.4.0",
+                "X-Fern-SDK-Version": "0.5.0",
+                "User-Agent": "@sync.so/sdk/0.5.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -178,8 +178,8 @@ export class Transcriptions {
             headers: {
                 "X-Fern-Language": "JavaScript",
                 "X-Fern-SDK-Name": "@sync.so/sdk",
-                "X-Fern-SDK-Version": "0.4.0",
-                "User-Agent": "@sync.so/sdk/0.4.0",
+                "X-Fern-SDK-Version": "0.5.0",
+                "User-Agent": "@sync.so/sdk/0.5.0",
                 "X-Fern-Runtime": core.RUNTIME.type,
                 "X-Fern-Runtime-Version": core.RUNTIME.version,
                 ...(await this._getCustomAuthorizationHeaders()),
@@ -227,6 +227,342 @@ export class Transcriptions {
                 });
             case "timeout":
                 throw new errors.SyncTimeoutError("Timeout exceeded when calling GET /v2/transcriptions/{id}.");
+            case "unknown":
+                throw new errors.SyncError({
+                    message: _response.error.errorMessage,
+                    rawResponse: _response.rawResponse,
+                });
+        }
+    }
+
+    /**
+     * Returns which face belongs to each transcript speaker. Each speaker is matched, with an avatar, evidence and a face track, or uncertain, with a reason. Analysis may already be available for video transcriptions of your own media. Read this endpoint before starting an analysis. Poll while `status` is `processing`, until it is `completed` or `unavailable`. Requires a completed transcription.
+     *
+     * @param {Sync.TranscriptionJobId} id - Transcription job id.
+     * @param {Transcriptions.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link Sync.UnauthorizedError}
+     * @throws {@link Sync.NotFoundError}
+     * @throws {@link Sync.ConflictError}
+     * @throws {@link Sync.InternalServerError}
+     *
+     * @example
+     *     await client.transcriptions.getSpeakerAnalysis("6533643b-aceb-4c40-967e-d9ba9baac39e")
+     */
+    public getSpeakerAnalysis(
+        id: Sync.TranscriptionJobId,
+        requestOptions?: Transcriptions.RequestOptions,
+    ): core.HttpResponsePromise<Sync.SpeakerAnalysis> {
+        return core.HttpResponsePromise.fromPromise(this.__getSpeakerAnalysis(id, requestOptions));
+    }
+
+    private async __getSpeakerAnalysis(
+        id: Sync.TranscriptionJobId,
+        requestOptions?: Transcriptions.RequestOptions,
+    ): Promise<core.WithRawResponse<Sync.SpeakerAnalysis>> {
+        const _response = await (this._options.fetcher ?? core.fetcher)({
+            url: urlJoin(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.SyncEnvironment.Default,
+                `/v2/transcriptions/${encodeURIComponent(id)}/speaker-analysis`,
+            ),
+            method: "GET",
+            headers: {
+                "X-Fern-Language": "JavaScript",
+                "X-Fern-SDK-Name": "@sync.so/sdk",
+                "X-Fern-SDK-Version": "0.5.0",
+                "User-Agent": "@sync.so/sdk/0.5.0",
+                "X-Fern-Runtime": core.RUNTIME.type,
+                "X-Fern-Runtime-Version": core.RUNTIME.version,
+                ...(await this._getCustomAuthorizationHeaders()),
+                ...requestOptions?.headers,
+            },
+            contentType: "application/json",
+            requestType: "json",
+            timeoutMs: requestOptions?.timeoutInSeconds != null ? requestOptions.timeoutInSeconds * 1000 : 60000,
+            maxRetries: requestOptions?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+        });
+        if (_response.ok) {
+            return { data: _response.body as Sync.SpeakerAnalysis, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 401:
+                    throw new Sync.UnauthorizedError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 404:
+                    throw new Sync.NotFoundError(_response.error.body as Sync.GenerationError, _response.rawResponse);
+                case 409:
+                    throw new Sync.ConflictError(_response.error.body as Sync.GenerationError, _response.rawResponse);
+                case 500:
+                    throw new Sync.InternalServerError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                default:
+                    throw new errors.SyncError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        switch (_response.error.reason) {
+            case "non-json":
+                throw new errors.SyncError({
+                    statusCode: _response.error.statusCode,
+                    body: _response.error.rawBody,
+                    rawResponse: _response.rawResponse,
+                });
+            case "timeout":
+                throw new errors.SyncTimeoutError(
+                    "Timeout exceeded when calling GET /v2/transcriptions/{id}/speaker-analysis.",
+                );
+            case "unknown":
+                throw new errors.SyncError({
+                    message: _response.error.errorMessage,
+                    rawResponse: _response.rawResponse,
+                });
+        }
+    }
+
+    /**
+     * Matches each transcript speaker to the face that talks during their words. Read `GET /v2/transcriptions/{id}/speaker-analysis` first, and call this to start an analysis that wasn't run or to retry one that ended `unavailable`. Pass the job's `revision` and `sourceVideoUrl`. Supports up to 2 minutes of video and 8 speakers, and 3 requests per minute.
+     *
+     * @param {Sync.TranscriptionJobId} id - Transcription job id.
+     * @param {Sync.AnalyzeSpeakersRequest} request
+     * @param {Transcriptions.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link Sync.UnauthorizedError}
+     * @throws {@link Sync.NotFoundError}
+     * @throws {@link Sync.ConflictError}
+     * @throws {@link Sync.UnprocessableEntityError}
+     * @throws {@link Sync.SpeakerAnalysisTooManyRequestsError}
+     * @throws {@link Sync.InternalServerError}
+     *
+     * @example
+     *     await client.transcriptions.analyzeSpeakers("id", {
+     *         revision: "revision",
+     *         sourceVideoUrl: "sourceVideoUrl",
+     *         retry: undefined
+     *     })
+     */
+    public analyzeSpeakers(
+        id: Sync.TranscriptionJobId,
+        request: Sync.AnalyzeSpeakersRequest,
+        requestOptions?: Transcriptions.RequestOptions,
+    ): core.HttpResponsePromise<Sync.SpeakerAnalysis> {
+        return core.HttpResponsePromise.fromPromise(this.__analyzeSpeakers(id, request, requestOptions));
+    }
+
+    private async __analyzeSpeakers(
+        id: Sync.TranscriptionJobId,
+        request: Sync.AnalyzeSpeakersRequest,
+        requestOptions?: Transcriptions.RequestOptions,
+    ): Promise<core.WithRawResponse<Sync.SpeakerAnalysis>> {
+        const _response = await (this._options.fetcher ?? core.fetcher)({
+            url: urlJoin(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.SyncEnvironment.Default,
+                `/v2/transcriptions/${encodeURIComponent(id)}/speaker-analysis`,
+            ),
+            method: "POST",
+            headers: {
+                "X-Fern-Language": "JavaScript",
+                "X-Fern-SDK-Name": "@sync.so/sdk",
+                "X-Fern-SDK-Version": "0.5.0",
+                "User-Agent": "@sync.so/sdk/0.5.0",
+                "X-Fern-Runtime": core.RUNTIME.type,
+                "X-Fern-Runtime-Version": core.RUNTIME.version,
+                ...(await this._getCustomAuthorizationHeaders()),
+                ...requestOptions?.headers,
+            },
+            contentType: "application/json",
+            requestType: "json",
+            body: request,
+            timeoutMs: requestOptions?.timeoutInSeconds != null ? requestOptions.timeoutInSeconds * 1000 : 60000,
+            maxRetries: requestOptions?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+        });
+        if (_response.ok) {
+            return { data: _response.body as Sync.SpeakerAnalysis, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 401:
+                    throw new Sync.UnauthorizedError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 404:
+                    throw new Sync.NotFoundError(_response.error.body as Sync.GenerationError, _response.rawResponse);
+                case 409:
+                    throw new Sync.ConflictError(_response.error.body as Sync.GenerationError, _response.rawResponse);
+                case 422:
+                    throw new Sync.UnprocessableEntityError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 429:
+                    throw new Sync.SpeakerAnalysisTooManyRequestsError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 500:
+                    throw new Sync.InternalServerError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                default:
+                    throw new errors.SyncError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        switch (_response.error.reason) {
+            case "non-json":
+                throw new errors.SyncError({
+                    statusCode: _response.error.statusCode,
+                    body: _response.error.rawBody,
+                    rawResponse: _response.rawResponse,
+                });
+            case "timeout":
+                throw new errors.SyncTimeoutError(
+                    "Timeout exceeded when calling POST /v2/transcriptions/{id}/speaker-analysis.",
+                );
+            case "unknown":
+                throw new errors.SyncError({
+                    message: _response.error.errorMessage,
+                    rawResponse: _response.rawResponse,
+                });
+        }
+    }
+
+    /**
+     * Cuts frames [`startFrame`, `endFrame`) at `fps` from a matched speaker's face track and returns a bounding-boxes file for that segment. Pass the `url` as the segment's `active_speaker_detection.bounding_boxes_url` so the segment lipsyncs that speaker. `url` is null when the face is on none of those frames; leave that segment unlipsynced or use auto-detect. 60 requests per minute.
+     *
+     * @param {Sync.TranscriptionJobId} id - Transcription job id.
+     * @param {Sync.SliceSpeakerFaceTrackRequest} request
+     * @param {Transcriptions.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link Sync.BadRequestError}
+     * @throws {@link Sync.UnauthorizedError}
+     * @throws {@link Sync.NotFoundError}
+     * @throws {@link Sync.ConflictError}
+     * @throws {@link Sync.UnprocessableEntityError}
+     * @throws {@link Sync.SpeakerAnalysisTooManyRequestsError}
+     * @throws {@link Sync.InternalServerError}
+     *
+     * @example
+     *     await client.transcriptions.sliceFaceTrack("6533643b-aceb-4c40-967e-d9ba9baac39e", {
+     *         revision: "3f9a1c0e7b2d4a6f8e1c3b5d7f9a0c2e4b6d8f0a1c3e5b7d9f1a3c5e7b9d0f2a",
+     *         speakerId: "speaker_0",
+     *         startFrame: 100,
+     *         endFrame: 250,
+     *         fps: 25
+     *     })
+     */
+    public sliceFaceTrack(
+        id: Sync.TranscriptionJobId,
+        request: Sync.SliceSpeakerFaceTrackRequest,
+        requestOptions?: Transcriptions.RequestOptions,
+    ): core.HttpResponsePromise<Sync.SpeakerFaceTrackSlice> {
+        return core.HttpResponsePromise.fromPromise(this.__sliceFaceTrack(id, request, requestOptions));
+    }
+
+    private async __sliceFaceTrack(
+        id: Sync.TranscriptionJobId,
+        request: Sync.SliceSpeakerFaceTrackRequest,
+        requestOptions?: Transcriptions.RequestOptions,
+    ): Promise<core.WithRawResponse<Sync.SpeakerFaceTrackSlice>> {
+        const _response = await (this._options.fetcher ?? core.fetcher)({
+            url: urlJoin(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.SyncEnvironment.Default,
+                `/v2/transcriptions/${encodeURIComponent(id)}/speaker-analysis/face-track-slices`,
+            ),
+            method: "POST",
+            headers: {
+                "X-Fern-Language": "JavaScript",
+                "X-Fern-SDK-Name": "@sync.so/sdk",
+                "X-Fern-SDK-Version": "0.5.0",
+                "User-Agent": "@sync.so/sdk/0.5.0",
+                "X-Fern-Runtime": core.RUNTIME.type,
+                "X-Fern-Runtime-Version": core.RUNTIME.version,
+                ...(await this._getCustomAuthorizationHeaders()),
+                ...requestOptions?.headers,
+            },
+            contentType: "application/json",
+            requestType: "json",
+            body: request,
+            timeoutMs: requestOptions?.timeoutInSeconds != null ? requestOptions.timeoutInSeconds * 1000 : 60000,
+            maxRetries: requestOptions?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+        });
+        if (_response.ok) {
+            return { data: _response.body as Sync.SpeakerFaceTrackSlice, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 400:
+                    throw new Sync.BadRequestError(_response.error.body as Sync.GenerationError, _response.rawResponse);
+                case 401:
+                    throw new Sync.UnauthorizedError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 404:
+                    throw new Sync.NotFoundError(_response.error.body as Sync.GenerationError, _response.rawResponse);
+                case 409:
+                    throw new Sync.ConflictError(_response.error.body as Sync.GenerationError, _response.rawResponse);
+                case 422:
+                    throw new Sync.UnprocessableEntityError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 429:
+                    throw new Sync.SpeakerAnalysisTooManyRequestsError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                case 500:
+                    throw new Sync.InternalServerError(
+                        _response.error.body as Sync.GenerationError,
+                        _response.rawResponse,
+                    );
+                default:
+                    throw new errors.SyncError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        switch (_response.error.reason) {
+            case "non-json":
+                throw new errors.SyncError({
+                    statusCode: _response.error.statusCode,
+                    body: _response.error.rawBody,
+                    rawResponse: _response.rawResponse,
+                });
+            case "timeout":
+                throw new errors.SyncTimeoutError(
+                    "Timeout exceeded when calling POST /v2/transcriptions/{id}/speaker-analysis/face-track-slices.",
+                );
             case "unknown":
                 throw new errors.SyncError({
                     message: _response.error.errorMessage,

@@ -3,12 +3,14 @@
  */
 
 /**
- * Machine-readable failure code. EDIT_TOO_LONG, SOURCE_TOO_LONG, VOICE_SAMPLE_TOO_SHORT and PLAN_FAILED describe the request and will not succeed on retry.
+ * Machine-readable failure code. EDIT_TOO_LONG, SOURCE_TOO_LONG, VOICE_SAMPLE_TOO_SHORT, VOICE_BLOCKED, VOICE_VERIFICATION_REQUIRED and PLAN_FAILED describe the request and will not succeed on retry.
  */
 export type DialogueEditErrorCode =
     | "EXTRACTION_FAILED"
     | "VOICE_CLONE_FAILED"
     | "VOICE_SAMPLE_TOO_SHORT"
+    | "VOICE_BLOCKED"
+    | "VOICE_VERIFICATION_REQUIRED"
     | "SYNTHESIS_FAILED"
     | "EDIT_TOO_LONG"
     | "SOURCE_TOO_LONG"
@@ -19,6 +21,8 @@ export const DialogueEditErrorCode = {
     ExtractionFailed: "EXTRACTION_FAILED",
     VoiceCloneFailed: "VOICE_CLONE_FAILED",
     VoiceSampleTooShort: "VOICE_SAMPLE_TOO_SHORT",
+    VoiceBlocked: "VOICE_BLOCKED",
+    VoiceVerificationRequired: "VOICE_VERIFICATION_REQUIRED",
     SynthesisFailed: "SYNTHESIS_FAILED",
     EditTooLong: "EDIT_TOO_LONG",
     SourceTooLong: "SOURCE_TOO_LONG",

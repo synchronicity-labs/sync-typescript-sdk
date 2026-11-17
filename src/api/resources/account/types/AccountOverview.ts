@@ -10,8 +10,10 @@ import * as Sync from "../../../index";
 export interface AccountOverview {
     /** The user this credential acts for: the signed-in user for sessions and OAuth tokens, or the API key owner. Null for an API key that has no owner. */
     account: Sync.AccountUser | null;
-    /** The organization every request with this credential acts in. */
+    /** The organization selected for this request, or the credential's default organization. */
     organization: Sync.AccountOrganization;
+    /** Organizations these credentials can access, current one first. */
+    organizations: Sync.AccountOrganizationListItem[];
     /** `api_key`: an x-api-key header. `oauth`: an access token issued to a connected app such as an MCP client. `session`: a Studio sign-in. */
     credentialType: Sync.AccountCredentialType;
     /** Current plan. */
@@ -30,4 +32,6 @@ export interface AccountOverview {
     freeAllowance: Sync.AccountFreeAllowance | null;
     /** Studio billing page where a person can change plan, pay, top up or update the payment method. It needs a signed-in browser. */
     billingUrl: string;
+    /** API features currently available to these credentials. New names may be added. */
+    features: string[];
 }

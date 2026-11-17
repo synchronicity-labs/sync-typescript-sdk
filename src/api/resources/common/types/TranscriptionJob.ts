@@ -16,7 +16,7 @@ export interface TranscriptionJob {
     sourceVideoUrl?: string;
     /** Start of the transcribed window, in source milliseconds. */
     sourceStartMs: number;
-    /** End of the transcribed window, in source milliseconds. Null when the job transcribes to the end of the source. */
+    /** End of the transcribed window, in source milliseconds. A requested end past the end of the source reads as the source's end when the source could be measured at creation. Null when the job transcribes to the end of the source. */
     sourceEndMs?: number;
     /** Word-level transcript. Word timings are in milliseconds from the start of the source video, not the window. Null until status is COMPLETED. */
     transcript?: Sync.Transcript;
@@ -34,4 +34,8 @@ export interface TranscriptionJob {
     finishedAt?: string;
     /** Content hash of the source and transcript this job produced. Present once the job has a transcript. */
     revision?: string;
+    /** Expected completion time while the transcription is running. Null when the job is terminal or no estimate is available. */
+    estimate?: Sync.TranscriptionJobEstimate | null;
+    /** Milliseconds to wait before polling this job again, between 1,000 and 5,000. Present only while the job is `PENDING` or `PROCESSING`. */
+    retryAfterMs?: number;
 }

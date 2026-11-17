@@ -8,10 +8,14 @@ import * as Sync from "../../../index";
  * Why a dialogue edit job failed. Present only when status is FAILED.
  */
 export interface DialogueEditError {
-    /** Machine-readable failure code. EDIT_TOO_LONG, SOURCE_TOO_LONG, VOICE_SAMPLE_TOO_SHORT and PLAN_FAILED describe the request and will not succeed on retry. */
+    /** Machine-readable failure code. EDIT_TOO_LONG, SOURCE_TOO_LONG, VOICE_SAMPLE_TOO_SHORT, VOICE_BLOCKED, VOICE_VERIFICATION_REQUIRED and PLAN_FAILED describe the request and will not succeed on retry. */
     code: Sync.DialogueEditErrorCode;
     /** Human-readable summary of the failure. */
     message: string;
     /** For EDIT_TOO_LONG: the replacement text that does not fit the time its span has to occupy. Shorten it and resubmit. */
     spanText?: string;
+    /** For EDIT_TOO_LONG: ids of the transcript words the span replaces, in transcript order. Includes unedited words regenerated with the edit. */
+    wordIds?: string[];
+    /** For VOICE_BLOCKED, the speaker whose voice cannot be cloned. */
+    speakerId?: string;
 }

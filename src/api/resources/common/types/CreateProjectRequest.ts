@@ -10,7 +10,7 @@ import * as Sync from "../../../index";
 export interface CreateProjectRequest {
     /** Optional client-supplied project id (UUID) for idempotent creation. Re-sending the same id returns the existing project instead of creating a duplicate; the other request fields are ignored on such a replay. Fails with 409 if the id already belongs to a different user or organization, or to a deleted project. */
     id?: string;
-    /** A name for the project. */
+    /** A name for the project (1–255 characters). */
     name: string;
     /** An optional description for the project. */
     description?: string;

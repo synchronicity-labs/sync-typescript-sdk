@@ -21,7 +21,7 @@ export interface ListAssetsRequest {
      */
     limit?: number;
     /**
-     * Cursor for pagination.
+     * The nextCursor UUID returned by the previous page. A non-UUID value returns 400.
      */
     cursor?: string;
     /**
@@ -36,4 +36,8 @@ export interface ListAssetsRequest {
      * Filter by asset types. Accepts multiple types as a comma-separated list (AUDIO, VIDEO, IMAGE).
      */
     types?: Sync.AssetType[];
+    /**
+     * Filter audio by source. Video and image assets are unaffected.
+     */
+    audioSource?: Sync.AssetAudioSource;
 }

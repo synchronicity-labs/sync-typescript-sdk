@@ -8,7 +8,7 @@ import * as Sync from "../../../index";
  * Update a project. Only the fields you provide are changed.
  */
 export interface UpdateProjectRequest {
-    /** A new name for the project. */
+    /** A new name for the project (1–255 characters). */
     name?: string;
     /** A new description for the project. */
     description?: string;

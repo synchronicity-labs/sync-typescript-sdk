@@ -272,10 +272,10 @@ import * as Sync from "../../../../index";
  *     }
  */
 export interface CreateBatchFromRowsRequest {
-    /** The batch records: 20-500 by default on Scale and above, 1 up to your free generation slots below Scale. Each row contains `request_id`, endpoint exactly `/v2/generate`, and a generation `payload`, as on a JSONL line. */
+    /** The batch records, 20-500 by default. Each row contains `request_id`, endpoint exactly `/v2/generate`, and a generation `payload`, as on a JSONL line. */
     rows: Sync.BatchRow[];
-    /** Optional webhook URL to receive batch completion notifications. A POST request will be sent when the batch completes or fails, with a Sync-Signature header (`t=<unix>,v1=<hmac_sha256>`) signed with the organization webhook secret and a stable Sync-Delivery-Id header. Delivery is attempted up to six times over about two hours. */
+    /** Optional webhook URL to receive batch completion notifications. A POST request will be sent when the batch completes or fails, with a Sync-Signature header (`t=<unix>,v1=<hmac_sha256>`) signed with the organization webhook secret and a stable Sync-Delivery-Id header. Delivery is attempted up to six times over about two hours. A non-empty URL must use http:// or https://; invalid URLs return 400 before creating a batch. */
     webhook_url?: string;
-    /** When true, validates the rows, including dialogue edit expansion, and returns `{ "status": "VALIDATED" }` without creating a batch. */
+    /** When true, validates the rows, including dialogue edit expansion, and returns `{ "status": "VALIDATED" }` without creating a batch. Requires the same organization approval and plan as batch creation. */
     dry_run?: boolean;
 }

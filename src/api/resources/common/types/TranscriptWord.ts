@@ -14,4 +14,8 @@ export interface TranscriptWord {
     startMs: number;
     /** End of the word, in milliseconds from the start of the source. */
     endMs: number;
+    /** Speech recognition confidence in the word text, from 0 to 1. Says nothing about the speaker. Absent when the provider reported none. Returned by GET /v2/transcriptions/{id} and ignored when sent to POST /v2/dialogue-edits. */
+    confidence?: number;
+    /** Speaker ID from the transcript speakers list. Null when unknown; absent on older transcripts. */
+    speakerId?: string | null;
 }

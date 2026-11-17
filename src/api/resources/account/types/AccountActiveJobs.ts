@@ -3,7 +3,7 @@
  */
 
 export interface AccountActiveJobs {
-    /** In-flight video lipsync generations. Compare with limits.concurrency; batch generations are included here and count toward it only below the Scale plan. */
+    /** In-flight video lipsync generations. Compare with limits.concurrency; batch generations are included here but do not count toward it. */
     generations: number;
     /** All in-flight jobs, including dubbing and text-to-speech. Not a limit. */
     total: number;

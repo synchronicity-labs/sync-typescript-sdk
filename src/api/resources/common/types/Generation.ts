@@ -7,9 +7,9 @@ import * as Sync from "../../../index";
 export interface Generation {
     /** The date and time the generation was created. */
     createdAt: string;
-    /** The error message if the generation failed. */
+    /** The error message if the generation failed, was rejected or lip-synced nothing (NO_OP). */
     error?: string;
-    /** Stable, machine-readable error code if the generation failed (e.g. generation_input_video_inaccessible). The full catalog of codes, messages and suggested fixes is served unauthenticated at GET /v2/errors. */
+    /** Stable, machine-readable error code if the generation failed, was rejected or lip-synced nothing (NO_OP) (e.g. generation_input_video_inaccessible). The full catalog of codes, messages and suggested fixes is served unauthenticated at GET /v2/errors. */
     errorCode?: string;
     id: Sync.GenerationId;
     /** An array of input objects used for generation. */
@@ -28,6 +28,10 @@ export interface Generation {
     segments?: Sync.GenerationSegment[];
     /** The URL of the segment output media. */
     segmentOutputUrl?: string;
+    /** Dubbed audio URL. Omitted for generations without dubParams; null until the dubbed track is available. */
+    dubAudioUrl?: string | null;
+    /** Reusable AUDIO asset for the dubbed track. Omitted without dubParams; null until available, or when retention settings or a custom output bucket prevent saving an asset. */
+    dubAudioAssetId?: Sync.AssetId | null;
     /** The URL of the audio synthesized from a text (TTS) input. Only present for generations created with a TTS text input; reuse it as an audio input to keep the same take across generations. */
     synthesizedAudioUrl?: string;
     /** The status of the generation. */
@@ -36,8 +40,8 @@ export interface Generation {
     webhookUrl?: string;
     /** The id of the project this generation is attached to, or null when it belongs to no project. Set via the projectId field on the create request. */
     projectId?: Sync.ProjectId;
-    /** A completion-time estimate captured once when the generation is accepted. Populated only for generations created in sync's own apps, such as Sync Studio; the field is absent for generations created through the API today. */
+    /** A completion-time estimate captured once when the generation is accepted. Populated only for generations created in sync's own apps, such as Sync Studio; the field is absent for generations created through the API today. To get an expected finish time for any generation, request it with include=progress and read `progress.estimatedFinishAt`. */
     generationEstimate?: Sync.GenerationEstimate;
-    /** Generation progress from 0 to 100. Only present on Get Generation with `include=progress`. */
-    progress_percent?: number;
+    /** Render progress and expected finish. Only included when the generation is requested with include=progress. */
+    progress?: Sync.GenerationProgress;
 }
